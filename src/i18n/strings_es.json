@@ -1,0 +1,61 @@
+{
+  "title": "Precesión de Cuerpo Rígido",
+  "screens": {
+    "steadyPrecession": "Precesión Estable",
+    "nutation": "Nutación",
+    "torqueFree": "Volteo sin Par"
+  },
+  "steadyPrecession": {
+    "spinRate": "Velocidad de giro (Hz)",
+    "armMass": "Masa del brazo (kg)",
+    "pivotDistance": "Pivote a masa (m)",
+    "pivotAtCom": "Pivote en el centro de masa",
+    "vectorDiagramTitle": "¿Por qué de lado, no hacia abajo?",
+    "vectorInsight": "La gravedad tira hacia abajo — el par es perpendicular a L, así que la punta se mueve de lado.",
+    "graphTitle": "Ángulo de precesión φ vs. tiempo",
+    "readoutsTitle": "Tasas",
+    "formulaHint": "Ω = τ / (I ω)  —  más giro → precesión más lenta"
+  },
+  "nutation": {
+    "placeholder": "Pantalla de nutación — próximamente."
+  },
+  "torqueFree": {
+    "placeholder": "Volteo sin par — próximamente."
+  },
+  "a11y": {
+    "steadyPrecession": {
+      "screenSummary": {
+        "playArea": "El área de juego muestra un giroscopio, un diagrama de vectores y una gráfica del ángulo de precesión.",
+        "controlArea": "El área de control permite cambiar la velocidad de giro, la masa del brazo y la distancia al pivote.",
+        "interactionHint": "Ajuste la velocidad de giro y observe la tasa de precesión."
+      },
+      "currentDetailsPattern": "Precesión prevista {{predictedHz}} hertz. Medida {{measuredHz}} hertz.",
+      "controls": {
+        "spinRate": "Velocidad de giro",
+        "armMass": "Masa del brazo",
+        "pivotDistance": "Distancia pivote a masa",
+        "pivotAtCom": "Pivote en el centro de masa"
+      }
+    },
+    "nutation": {
+      "screenSummary": {
+        "playArea": "Próximamente: nutación.",
+        "controlArea": "Controles próximamente.",
+        "interactionHint": "En construcción."
+      },
+      "currentDetails": "Marcador de posición de nutación."
+    },
+    "torqueFree": {
+      "screenSummary": {
+        "playArea": "Próximamente: volteo sin par.",
+        "controlArea": "Controles próximamente.",
+        "interactionHint": "En construcción."
+      },
+      "currentDetails": "Marcador de posición sin par."
+    }
+  },
+  "preferences": {
+    "title": "Simulación",
+    "exampleToggle": "Ejemplo de alternancia"
+  }
+}

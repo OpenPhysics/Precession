@@ -1,0 +1,61 @@
+{
+  "title": "Rigid Body Precession",
+  "screens": {
+    "steadyPrecession": "Steady Precession",
+    "nutation": "Nutation",
+    "torqueFree": "Torque-Free Tumbling"
+  },
+  "steadyPrecession": {
+    "spinRate": "Spin rate (Hz)",
+    "armMass": "Arm mass (kg)",
+    "pivotDistance": "Pivot to mass (m)",
+    "pivotAtCom": "Pivot at center of mass",
+    "vectorDiagramTitle": "Why sideways, not down?",
+    "vectorInsight": "Gravity pulls down — torque is perpendicular to L, so the tip moves sideways.",
+    "graphTitle": "Precession angle φ vs. time",
+    "readoutsTitle": "Rates",
+    "formulaHint": "Ω = τ / (I ω)  —  faster spin → slower precession"
+  },
+  "nutation": {
+    "placeholder": "Nutation screen — release from a tilted angle to see wobble on top of steady precession. Coming soon."
+  },
+  "torqueFree": {
+    "placeholder": "Torque-free tumbling — asymmetric rigid body via Euler's equations. Coming soon."
+  },
+  "a11y": {
+    "steadyPrecession": {
+      "screenSummary": {
+        "playArea": "The play area shows a spinning gyroscope on a pivoted axle, a live vector diagram of weight, torque, angular momentum, and precession, and a graph of precession angle versus time.",
+        "controlArea": "The control area lets you change spin rate, arm mass, pivot distance, and whether the pivot is at the center of mass. Numeric readouts compare measured and predicted precession rates.",
+        "interactionHint": "Adjust the spin rate and arm mass, then watch how the precession rate responds. Toggle pivot at center of mass to see precession stop."
+      },
+      "currentDetailsPattern": "Predicted precession rate is {{predictedHz}} hertz. Measured slope is {{measuredHz}} hertz.",
+      "controls": {
+        "spinRate": "Spin rate",
+        "armMass": "Arm mass",
+        "pivotDistance": "Pivot to mass distance",
+        "pivotAtCom": "Pivot at center of mass"
+      }
+    },
+    "nutation": {
+      "screenSummary": {
+        "playArea": "The play area will show nutation — wobble on top of steady precession when the top is released off-equilibrium.",
+        "controlArea": "Controls for initial tilt and nutation kick will appear here.",
+        "interactionHint": "This screen is under construction."
+      },
+      "currentDetails": "Nutation screen placeholder."
+    },
+    "torqueFree": {
+      "screenSummary": {
+        "playArea": "The play area will show a torque-free asymmetric rigid body tumbling in space, with the Poinsot construction on the inertia ellipsoid.",
+        "controlArea": "Controls for initial spin axis and moment-of-inertia ratios will appear here.",
+        "interactionHint": "This screen is under construction."
+      },
+      "currentDetails": "Torque-free tumbling screen placeholder."
+    }
+  },
+  "preferences": {
+    "title": "Simulation",
+    "exampleToggle": "Example Toggle"
+  }
+}

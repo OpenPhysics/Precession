@@ -1,0 +1,61 @@
+{
+  "title": "Précession du Solide",
+  "screens": {
+    "steadyPrecession": "Précession Régulière",
+    "nutation": "Nutation",
+    "torqueFree": "Rotation Libre"
+  },
+  "steadyPrecession": {
+    "spinRate": "Vitesse de rotation (Hz)",
+    "armMass": "Masse du bras (kg)",
+    "pivotDistance": "Pivot à masse (m)",
+    "pivotAtCom": "Pivot au centre de masse",
+    "vectorDiagramTitle": "Pourquoi de côté, pas vers le bas ?",
+    "vectorInsight": "La gravité tire vers le bas — le couple est perpendiculaire à L, donc la pointe avance de côté.",
+    "graphTitle": "Angle de précession φ vs. temps",
+    "readoutsTitle": "Vitesses",
+    "formulaHint": "Ω = τ / (I ω)  —  plus de spin → précession plus lente"
+  },
+  "nutation": {
+    "placeholder": "Écran nutation — bientôt disponible."
+  },
+  "torqueFree": {
+    "placeholder": "Rotation libre — bientôt disponible."
+  },
+  "a11y": {
+    "steadyPrecession": {
+      "screenSummary": {
+        "playArea": "La zone de jeu montre un gyroscope, un diagramme vectoriel et un graphique de l'angle de précession.",
+        "controlArea": "La zone de contrôle permet de modifier la vitesse de rotation, la masse du bras et la distance au pivot.",
+        "interactionHint": "Réglez la vitesse de rotation et observez la vitesse de précession."
+      },
+      "currentDetailsPattern": "Précession prédite {{predictedHz}} hertz. Mesurée {{measuredHz}} hertz.",
+      "controls": {
+        "spinRate": "Vitesse de rotation",
+        "armMass": "Masse du bras",
+        "pivotDistance": "Distance pivot à masse",
+        "pivotAtCom": "Pivot au centre de masse"
+      }
+    },
+    "nutation": {
+      "screenSummary": {
+        "playArea": "Bientôt : nutation.",
+        "controlArea": "Contrôles à venir.",
+        "interactionHint": "En construction."
+      },
+      "currentDetails": "Écran nutation provisoire."
+    },
+    "torqueFree": {
+      "screenSummary": {
+        "playArea": "Bientôt : rotation libre.",
+        "controlArea": "Contrôles à venir.",
+        "interactionHint": "En construction."
+      },
+      "currentDetails": "Écran rotation libre provisoire."
+    }
+  },
+  "preferences": {
+    "title": "Simulation",
+    "exampleToggle": "Exemple de bascule"
+  }
+}
