@@ -1,12 +1,9 @@
 /**
  * SteadyPrecessionScreenView.ts
- *
- * Layout: gyroscope scene + vector diagram on the top row, φ(t) graph below,
- * controls on the right, time control and Reset All along the bottom.
  */
 
-import { HBox, Node, Rectangle, Text, VBox } from "scenerystack/scenery";
-import { PhetFont, ResetAllButton, TimeControlNode } from "scenerystack/scenery-phet";
+import { HBox, Node, Rectangle, VBox } from "scenerystack/scenery";
+import { ResetAllButton, TimeControlNode } from "scenerystack/scenery-phet";
 import type { ScreenViewOptions } from "scenerystack/sim";
 import { ScreenView } from "scenerystack/sim";
 import {
@@ -18,11 +15,14 @@ import { StringManager } from "../../i18n/StringManager.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import { SCREEN_VIEW_MARGIN } from "../../RigidBodyPrecessionConstants.js";
 import type { SteadyPrecessionModel } from "../model/SteadyPrecessionModel.js";
-import { GYROSCOPE_SCENE_HEIGHT, GyroscopeSceneNode } from "./GyroscopeSceneNode.js";
+import { GyroscopeSceneNode } from "./GyroscopeSceneNode.js";
+import { PlayAreaPanel } from "./PlayAreaPanel.js";
 import { PrecessionAngleGraphNode } from "./PrecessionAngleGraphNode.js";
 import { SteadyPrecessionControlPanel } from "./SteadyPrecessionControlPanel.js";
 import { SteadyPrecessionScreenSummaryContent } from "./SteadyPrecessionScreenSummaryContent.js";
-import { VECTOR_DIAGRAM_HEIGHT, VectorDiagramNode } from "./VectorDiagramNode.js";
+import { VectorDiagramNode } from "./VectorDiagramNode.js";
+
+const BOTTOM_CHROME_HEIGHT = 56;
 
 export class SteadyPrecessionScreenView extends ScreenView {
   public constructor(model: SteadyPrecessionModel, options?: ScreenViewOptions) {
@@ -31,10 +31,11 @@ export class SteadyPrecessionScreenView extends ScreenView {
       ...options,
     });
 
-    const backgroundRect = new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {
-      fill: RigidBodyPrecessionColors.backgroundColorProperty,
-    });
-    this.addChild(backgroundRect);
+    this.addChild(
+      new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {
+        fill: RigidBodyPrecessionColors.backgroundColorProperty,
+      }),
+    );
 
     const strings = StringManager.getInstance().getSteadyPrecessionStrings();
 
@@ -44,40 +45,39 @@ export class SteadyPrecessionScreenView extends ScreenView {
 
     const playAreaRight = controlPanel.left - SCREEN_VIEW_MARGIN;
     const playAreaWidth = playAreaRight - SCREEN_VIEW_MARGIN;
+    const playAreaBottom = this.layoutBounds.maxY - SCREEN_VIEW_MARGIN - BOTTOM_CHROME_HEIGHT;
 
-    const gyroscope = new GyroscopeSceneNode(model);
-    const vectorDiagram = new VectorDiagramNode(model);
+    const gyroscopePanel = new PlayAreaPanel(strings.gyroscopeTitleStringProperty, new GyroscopeSceneNode(model));
+    const vectorPanel = new PlayAreaPanel(strings.vectorDiagramTitleStringProperty, new VectorDiagramNode(model));
 
     const topRow = new HBox({
-      spacing: 8,
+      spacing: 10,
       align: "top",
-      children: [gyroscope, vectorDiagram],
-      left: SCREEN_VIEW_MARGIN,
-      top: SCREEN_VIEW_MARGIN,
+      children: [gyroscopePanel, vectorPanel],
     });
 
-    // Scale top row if it overflows the play area
-    const topNaturalWidth = GYROSCOPE_SCENE_HEIGHT > 0 ? topRow.bounds.width : playAreaWidth;
-    if (topNaturalWidth > playAreaWidth && topNaturalWidth > 0) {
-      topRow.setScaleMagnitude(playAreaWidth / topNaturalWidth);
-      topRow.left = SCREEN_VIEW_MARGIN;
-      topRow.top = SCREEN_VIEW_MARGIN;
+    // Fit top row into available width
+    if (topRow.width > playAreaWidth && topRow.width > 0) {
+      topRow.setScaleMagnitude(playAreaWidth / topRow.width);
     }
+    topRow.left = SCREEN_VIEW_MARGIN;
+    topRow.top = SCREEN_VIEW_MARGIN;
 
-    const graphWidth = Math.max(280, playAreaWidth - 50);
-    const graphTitle = new Text(strings.graphTitleStringProperty, {
-      font: new PhetFont({ size: 14, weight: "bold" }),
-      fill: RigidBodyPrecessionColors.textColorProperty,
-    });
-    const graph = new PrecessionAngleGraphNode(model, graphWidth);
+    const graphPanel = new PlayAreaPanel(
+      strings.graphTitleStringProperty,
+      new PrecessionAngleGraphNode(model, Math.max(300, playAreaWidth - 40)),
+    );
+    graphPanel.left = SCREEN_VIEW_MARGIN;
+    graphPanel.top = topRow.bounds.bottom + 6;
 
-    const graphBlock = new VBox({
-      spacing: 4,
-      align: "left",
-      children: [graphTitle, graph],
-      left: SCREEN_VIEW_MARGIN + 24,
-      top: Math.max(topRow.bottom, SCREEN_VIEW_MARGIN + Math.max(GYROSCOPE_SCENE_HEIGHT, VECTOR_DIAGRAM_HEIGHT)) + 8,
-    });
+    // Shrink graph if it would overlap bottom chrome
+    const graphOverflow = graphPanel.bounds.bottom - playAreaBottom;
+    if (graphOverflow > 0 && graphPanel.height > 0) {
+      const shrink = (graphPanel.height - graphOverflow) / graphPanel.height;
+      graphPanel.setScaleMagnitude(Math.max(0.65, shrink));
+      graphPanel.left = SCREEN_VIEW_MARGIN;
+      graphPanel.top = topRow.bounds.bottom + 6;
+    }
 
     const timeControl = new TimeControlNode(model.timer.isPlayingProperty, {
       ...TIME_CONTROL_SPEED_RADIO_OPTIONS,
@@ -88,9 +88,9 @@ export class SteadyPrecessionScreenView extends ScreenView {
           listener: () => model.step(1 / 60),
         },
       },
+      left: SCREEN_VIEW_MARGIN,
+      bottom: this.layoutBounds.maxY - SCREEN_VIEW_MARGIN,
     });
-    timeControl.left = SCREEN_VIEW_MARGIN;
-    timeControl.bottom = this.layoutBounds.maxY - SCREEN_VIEW_MARGIN;
 
     const resetAllButton = new ResetAllButton({
       ...FLAT_RESET_ALL_BUTTON_OPTIONS,
@@ -102,8 +102,13 @@ export class SteadyPrecessionScreenView extends ScreenView {
       bottom: this.layoutBounds.maxY - SCREEN_VIEW_MARGIN,
     });
 
-    this.addChild(topRow);
-    this.addChild(graphBlock);
+    const playColumn = new VBox({
+      spacing: 0,
+      align: "left",
+      children: [topRow, graphPanel],
+    });
+
+    this.addChild(playColumn);
     this.addChild(controlPanel);
     this.addChild(timeControl);
     this.addChild(resetAllButton);
@@ -116,10 +121,10 @@ export class SteadyPrecessionScreenView extends ScreenView {
   }
 
   public reset(): void {
-    // View has no extra state beyond model-linked nodes.
+    // View state is model-driven; nothing extra to reset.
   }
 
   public override step(_dt: number): void {
-    // Animation is driven by model property updates in Multilinks.
+    // Animation updates via Multilink on model properties.
   }
 }

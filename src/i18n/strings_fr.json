@@ -10,8 +10,10 @@
     "armMass": "Masse du bras (kg)",
     "pivotDistance": "Pivot à masse (m)",
     "pivotAtCom": "Pivot au centre de masse",
+    "gyroscopeTitle": "Gyroscope",
     "vectorDiagramTitle": "Pourquoi de côté, pas vers le bas ?",
-    "vectorInsight": "La gravité tire vers le bas — le couple est perpendiculaire à L, donc la pointe avance de côté.",
+    "vectorInsight": "La gravité tire vers le bas — mais τ = dL/dt est ⊥ L.",
+    "noTorqueMessage": "Pivot au CM : τ = 0, pas de précession.",
     "graphTitle": "Angle de précession φ vs. temps",
     "readoutsTitle": "Vitesses",
     "formulaHint": "Ω = τ / (I ω)  —  plus de spin → précession plus lente"

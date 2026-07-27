@@ -10,8 +10,10 @@
     "armMass": "Arm mass (kg)",
     "pivotDistance": "Pivot to mass (m)",
     "pivotAtCom": "Pivot at center of mass",
+    "gyroscopeTitle": "Gyroscope",
     "vectorDiagramTitle": "Why sideways, not down?",
-    "vectorInsight": "Gravity pulls down — torque is perpendicular to L, so the tip moves sideways.",
+    "vectorInsight": "Gravity pulls down — but τ = dL/dt is ⊥ L, so the tip moves sideways.",
+    "noTorqueMessage": "Pivot at center of mass: τ = 0, no precession.",
     "graphTitle": "Precession angle φ vs. time",
     "readoutsTitle": "Rates",
     "formulaHint": "Ω = τ / (I ω)  —  faster spin → slower precession"

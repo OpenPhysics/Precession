@@ -1,7 +1,7 @@
 /**
  * PrecessionAngleGraphNode.ts
  *
- * Rolling plot of precession angle φ vs. time — should be linear once spin settles.
+ * Rolling φ(t) plot with a dashed Ω_pred reference slope for comparison.
  */
 
 import { Multilink } from "scenerystack/axon";
@@ -16,11 +16,13 @@ import type { SteadyPrecessionModel } from "../model/SteadyPrecessionModel.js";
 
 const AXIS_FONT = new PhetFont({ size: 11 });
 const LEFT_MARGIN = 36;
-const BOTTOM_MARGIN = 36;
+const BOTTOM_MARGIN = 32;
+const TIME_WINDOW_S = 10;
 
 export class PrecessionAngleGraphNode extends Node {
   private readonly chartTransform: ChartTransform;
-  private readonly linePlot: LinePlot;
+  private readonly dataPlot: LinePlot;
+  private readonly predictionPlot: LinePlot;
   private readonly model: SteadyPrecessionModel;
 
   public constructor(model: SteadyPrecessionModel, width = 360) {
@@ -32,7 +34,7 @@ export class PrecessionAngleGraphNode extends Node {
     this.chartTransform = new ChartTransform({
       viewWidth: width,
       viewHeight: PRECESSION_GRAPH_HEIGHT,
-      modelXRange: new Range(0, 10),
+      modelXRange: new Range(0, TIME_WINDOW_S),
       modelYRange: new Range(0, 4),
     });
 
@@ -54,7 +56,14 @@ export class PrecessionAngleGraphNode extends Node {
       lineWidth: 0.5,
     });
 
-    this.linePlot = new LinePlot(this.chartTransform, [], {
+    this.predictionPlot = new LinePlot(this.chartTransform, [], {
+      stroke: RigidBodyPrecessionColors.precessionColorProperty,
+      lineWidth: 1.5,
+      lineDash: [6, 4],
+      opacity: 0.75,
+    });
+
+    this.dataPlot = new LinePlot(this.chartTransform, [], {
       stroke: RigidBodyPrecessionColors.graphTraceColorProperty,
       lineWidth: 2.5,
     });
@@ -76,7 +85,8 @@ export class PrecessionAngleGraphNode extends Node {
       chartRectangle,
       verticalGrid,
       horizontalGrid,
-      this.linePlot,
+      this.predictionPlot,
+      this.dataPlot,
       xTicks,
       yTicks,
       xLabels,
@@ -88,7 +98,7 @@ export class PrecessionAngleGraphNode extends Node {
       font: AXIS_FONT,
       fill: RigidBodyPrecessionColors.textColorProperty,
       centerX: LEFT_MARGIN + width / 2,
-      top: PRECESSION_GRAPH_HEIGHT + 18,
+      top: PRECESSION_GRAPH_HEIGHT + 16,
     });
     const yTitle = new Text("φ (rad)", {
       font: AXIS_FONT,
@@ -97,32 +107,62 @@ export class PrecessionAngleGraphNode extends Node {
       right: 4,
       centerY: PRECESSION_GRAPH_HEIGHT / 2,
     });
+
+    const legend = new Text("— measured   ╌╌ Ω_pred", {
+      font: new PhetFont({ size: 10 }),
+      fill: RigidBodyPrecessionColors.textColorProperty,
+      left: LEFT_MARGIN + 4,
+      top: PRECESSION_GRAPH_HEIGHT + 2,
+      opacity: 0.75,
+    });
+
     this.addChild(xTitle);
     this.addChild(yTitle);
+    this.addChild(legend);
 
-    Multilink.multilink([model.timer.timeProperty, model.precessionAngleProperty], () => this.updatePlot());
+    Multilink.multilink(
+      [model.timer.timeProperty, model.precessionAngleProperty, model.predictedPrecessionRateProperty],
+      () => this.updatePlot(),
+    );
     this.updatePlot();
   }
 
   private updatePlot(): void {
     const points = this.model.getGraphPoints();
     if (points.length === 0) {
-      this.linePlot.setDataSet([]);
+      this.dataPlot.setDataSet([]);
+      this.predictionPlot.setDataSet([]);
       return;
     }
 
     const latestTime = points[points.length - 1]?.x ?? 0;
-    const window = 10;
-    const minTime = Math.max(0, latestTime - window);
-    const maxTime = Math.max(window, latestTime);
+    const minTime = Math.max(0, latestTime - TIME_WINDOW_S);
+    const maxTime = Math.max(TIME_WINDOW_S, latestTime);
     this.chartTransform.setModelXRange(new Range(minTime, maxTime));
 
     const visibleAngles = points.filter((p) => p.x >= minTime).map((p) => p.y);
     const minAngle = Math.min(...visibleAngles, 0);
     const maxAngle = Math.max(...visibleAngles, 1);
-    const padding = Math.max(0.2, 0.08 * (maxAngle - minAngle));
+    const padding = Math.max(0.15, 0.08 * (maxAngle - minAngle));
     this.chartTransform.setModelYRange(new Range(minAngle - padding, maxAngle + padding));
 
-    this.linePlot.setDataSet(points.map((point) => new Vector2(point.x, point.y)));
+    this.dataPlot.setDataSet(points.map((p) => new Vector2(p.x, p.y)));
+
+    // Dashed reference line: φ_pred(t) = φ₀ + Ω_pred · (t − t₀) anchored at latest point
+    const omega = this.model.predictedPrecessionRateProperty.value;
+    const phi0 = this.model.precessionAngleProperty.value;
+    const t0 = latestTime;
+    if (omega > 1e-9) {
+      const tStart = minTime;
+      const tEnd = maxTime;
+      this.predictionPlot.setDataSet([
+        new Vector2(tStart, phi0 + omega * (tStart - t0)),
+        new Vector2(tEnd, phi0 + omega * (tEnd - t0)),
+      ]);
+      this.predictionPlot.visible = true;
+    } else {
+      this.predictionPlot.setDataSet([]);
+      this.predictionPlot.visible = false;
+    }
   }
 }

@@ -1,35 +1,36 @@
 /**
  * GyroscopeSceneNode.ts
  *
- * Perspective schematic of a pivoted gyroscope: stand, axle, spinning disk, arm
- * mass, tip orbit on the ground plane, and a weight arrow at the mass.
+ * Perspective schematic of a pivoted gyroscope with a top-down precession inset.
  */
 
 import { Multilink } from "scenerystack/axon";
 import { Bounds2, Vector2 } from "scenerystack/dot";
 import { Shape } from "scenerystack/kite";
-import { Circle, Line, Node, Path, Rectangle } from "scenerystack/scenery";
-import { ArrowNode } from "scenerystack/scenery-phet";
+import { Circle, Line, Node, Path, Rectangle, Text } from "scenerystack/scenery";
+import { ArrowNode, PhetFont } from "scenerystack/scenery-phet";
+import { computeAxleGeometry, projectAxlePoint } from "../../common/rigid-body/GyroscopeKinematics.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import { DISK_POSITION_FROM_PIVOT_M, PIVOT_DISTANCE_RANGE } from "../../RigidBodyPrecessionConstants.js";
 import type { SteadyPrecessionModel } from "../model/SteadyPrecessionModel.js";
 
-export const GYROSCOPE_SCENE_WIDTH = 420;
-export const GYROSCOPE_SCENE_HEIGHT = 300;
+export const GYROSCOPE_SCENE_WIDTH = 400;
+export const GYROSCOPE_SCENE_HEIGHT = 290;
 
-const PIVOT_X = 200;
-const PIVOT_Y = 210;
-const AXLE_PX_PER_M = 380;
-/** Foreshortening of the depth (sin φ) screen axis. */
-const PERSPECTIVE = 0.55;
+const PIVOT = new Vector2(185, 200);
+const AXLE_PX_PER_M = 360;
+const PERSPECTIVE = 0.5;
+
+const INSET_SIZE = 72;
+const INSET_MARGIN = 8;
 
 export class GyroscopeSceneNode extends Node {
   public constructor(model: SteadyPrecessionModel) {
     super();
     this.localBounds = new Bounds2(0, 0, GYROSCOPE_SCENE_WIDTH, GYROSCOPE_SCENE_HEIGHT);
 
-    const ground = new Path(Shape.ellipse(PIVOT_X, PIVOT_Y + 8, 170, 28, 0), {
-      fill: "rgba(15, 52, 96, 0.35)",
+    const ground = new Path(Shape.ellipse(PIVOT.x, PIVOT.y + 6, 155, 24, 0), {
+      fill: "rgba(15, 52, 96, 0.4)",
       stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
       lineWidth: 1,
     });
@@ -38,27 +39,27 @@ export class GyroscopeSceneNode extends Node {
     const tipOrbit = new Path(new Shape(), {
       stroke: RigidBodyPrecessionColors.precessionColorProperty,
       lineWidth: 1.5,
-      lineDash: [6, 5],
-      opacity: 0.75,
+      lineDash: [5, 4],
+      opacity: 0.8,
     });
     this.addChild(tipOrbit);
 
-    const standPost = new Rectangle(PIVOT_X - 6, PIVOT_Y, 12, 55, {
+    const standPost = new Rectangle(PIVOT.x - 5, PIVOT.y, 10, 48, {
       fill: RigidBodyPrecessionColors.gyroscopeColorProperty,
       cornerRadius: 2,
     });
-    const standBase = new Rectangle(PIVOT_X - 40, PIVOT_Y + 50, 80, 12, {
+    const standBase = new Rectangle(PIVOT.x - 36, PIVOT.y + 44, 72, 10, {
       fill: RigidBodyPrecessionColors.panelBorderColorProperty,
       cornerRadius: 3,
     });
     this.addChild(standPost);
     this.addChild(standBase);
 
-    const pivot = new Circle(8, {
+    const pivot = new Circle(7, {
       fill: RigidBodyPrecessionColors.accentColorProperty,
       stroke: RigidBodyPrecessionColors.textColorProperty,
       lineWidth: 1,
-      center: new Vector2(PIVOT_X, PIVOT_Y),
+      center: PIVOT,
     });
     this.addChild(pivot);
 
@@ -83,7 +84,7 @@ export class GyroscopeSceneNode extends Node {
     });
     this.addChild(spinMark);
 
-    const armMass = new Rectangle(0, 0, 22, 22, {
+    const armMass = new Rectangle(0, 0, 20, 20, {
       fill: RigidBodyPrecessionColors.weightColorProperty,
       stroke: RigidBodyPrecessionColors.gyroscopeColorProperty,
       lineWidth: 1.5,
@@ -92,9 +93,9 @@ export class GyroscopeSceneNode extends Node {
     this.addChild(armMass);
 
     const weightArrow = new ArrowNode(0, 0, 0, 0, {
-      headHeight: 10,
-      headWidth: 10,
-      tailWidth: 3,
+      headHeight: 9,
+      headWidth: 9,
+      tailWidth: 2.5,
       fill: RigidBodyPrecessionColors.weightColorProperty,
       stroke: RigidBodyPrecessionColors.weightColorProperty,
     });
@@ -103,13 +104,37 @@ export class GyroscopeSceneNode extends Node {
     const tipDot = new Circle(4, { fill: RigidBodyPrecessionColors.precessionColorProperty });
     this.addChild(tipDot);
 
-    const project = (distanceM: number, phi: number, tilt: number): Vector2 => {
-      const along = distanceM * AXLE_PX_PER_M;
-      return new Vector2(
-        PIVOT_X + along * Math.sin(tilt) * Math.cos(phi),
-        PIVOT_Y - along * Math.cos(tilt) + along * Math.sin(tilt) * Math.sin(phi) * PERSPECTIVE,
-      );
-    };
+    // Top-down inset: precession circle viewed from above
+    const insetX = GYROSCOPE_SCENE_WIDTH - INSET_SIZE - INSET_MARGIN;
+    const insetY = INSET_MARGIN;
+    const insetCenter = new Vector2(insetX + INSET_SIZE / 2, insetY + INSET_SIZE / 2);
+    const insetRadius = INSET_SIZE / 2 - 6;
+
+    const insetCard = new Rectangle(insetX, insetY, INSET_SIZE, INSET_SIZE, {
+      fill: "rgba(15, 26, 46, 0.7)",
+      stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
+      lineWidth: 1,
+      cornerRadius: 6,
+    });
+    const insetOrbit = new Circle(insetRadius, {
+      fill: "transparent",
+      stroke: RigidBodyPrecessionColors.precessionColorProperty,
+      lineWidth: 1,
+      lineDash: [3, 3],
+      center: insetCenter,
+    });
+    const insetDot = new Circle(5, { fill: RigidBodyPrecessionColors.precessionColorProperty });
+    const insetLabel = new Text("top view", {
+      font: new PhetFont({ size: 9 }),
+      fill: RigidBodyPrecessionColors.textColorProperty,
+      centerX: insetCenter.x,
+      top: insetY + 4,
+      opacity: 0.7,
+    });
+    this.addChild(insetCard);
+    this.addChild(insetOrbit);
+    this.addChild(insetDot);
+    this.addChild(insetLabel);
 
     const update = (): void => {
       const tilt = model.getParameters().tiltAngle;
@@ -119,48 +144,69 @@ export class GyroscopeSceneNode extends Node {
       const massDistance = atCom ? DISK_POSITION_FROM_PIVOT_M : model.pivotToMassDistanceProperty.value;
       const precessing = !atCom && model.predictedPrecessionRateProperty.value > 1e-6;
 
-      const orbitRadiusX = massDistance * AXLE_PX_PER_M * Math.sin(tilt);
-      const orbitY = PIVOT_Y - massDistance * AXLE_PX_PER_M * Math.cos(tilt);
+      const geom = computeAxleGeometry(
+        PIVOT,
+        phi,
+        tilt,
+        massDistance,
+        DISK_POSITION_FROM_PIVOT_M,
+        AXLE_PX_PER_M,
+        PERSPECTIVE,
+      );
+
       tipOrbit.shape = Shape.ellipse(
-        PIVOT_X,
-        orbitY,
-        Math.max(4, orbitRadiusX),
-        Math.max(4, orbitRadiusX * PERSPECTIVE),
+        geom.orbitCenter.x,
+        geom.orbitCenter.y,
+        Math.max(3, geom.orbitRadiusX),
+        Math.max(3, geom.orbitRadiusY),
         0,
       );
       tipOrbit.visible = precessing;
       tipDot.visible = precessing;
 
-      const tip = project(massDistance, phi, tilt);
-      const diskPos = project(DISK_POSITION_FROM_PIVOT_M, phi, tilt);
-      const axleEnd = project(Math.max(massDistance, PIVOT_DISTANCE_RANGE.max * 0.65), phi, tilt);
-
-      axle.setPoint1(PIVOT_X, PIVOT_Y);
+      const axleEnd = projectAxlePoint(
+        PIVOT,
+        Math.max(massDistance, PIVOT_DISTANCE_RANGE.max * 0.6),
+        phi,
+        tilt,
+        AXLE_PX_PER_M,
+        PERSPECTIVE,
+      );
+      axle.setPoint1(PIVOT.x, PIVOT.y);
       axle.setPoint2(axleEnd.x, axleEnd.y);
 
-      const diskRadius = 28;
-      const axleAngle = Math.atan2(axleEnd.y - PIVOT_Y, axleEnd.x - PIVOT_X);
-      const minor = diskRadius * (0.32 + 0.5 * Math.abs(Math.cos(tilt)));
-      disk.shape = Shape.ellipse(diskPos.x, diskPos.y, diskRadius, minor, axleAngle);
+      const diskRadius = 26;
+      const minor = diskRadius * (0.3 + 0.55 * Math.abs(Math.cos(tilt)));
+      disk.shape = Shape.ellipse(geom.diskCenter.x, geom.diskCenter.y, diskRadius, minor, geom.axleAngle);
 
-      const markAngle = axleAngle + Math.PI / 2 + spin;
-      const markLen = diskRadius * 0.7;
+      const markAngle = geom.axleAngle + Math.PI / 2 + spin;
+      const markLen = diskRadius * 0.72;
       spinMark.setPoint1(
-        diskPos.x - markLen * Math.cos(markAngle),
-        diskPos.y - markLen * Math.sin(markAngle) * (minor / diskRadius),
+        geom.diskCenter.x - markLen * Math.cos(markAngle),
+        geom.diskCenter.y - markLen * Math.sin(markAngle) * (minor / diskRadius),
       );
       spinMark.setPoint2(
-        diskPos.x + markLen * Math.cos(markAngle),
-        diskPos.y + markLen * Math.sin(markAngle) * (minor / diskRadius),
+        geom.diskCenter.x + markLen * Math.cos(markAngle),
+        geom.diskCenter.y + markLen * Math.sin(markAngle) * (minor / diskRadius),
       );
 
-      armMass.center = tip;
-      tipDot.center = tip;
+      armMass.center = geom.massTip;
+      tipDot.center = geom.massTip;
 
       weightArrow.visible = !atCom;
       if (!atCom) {
-        const scale = 24 + 36 * (model.armMassProperty.value / 0.5);
-        weightArrow.setTailAndTip(tip.x, tip.y, tip.x, tip.y + scale);
+        const scale = 22 + 34 * (model.armMassProperty.value / 0.5);
+        weightArrow.setTailAndTip(geom.massTip.x, geom.massTip.y, geom.massTip.x, geom.massTip.y + scale);
+      }
+
+      // Top-down inset dot on the precession circle
+      insetOrbit.visible = precessing;
+      insetDot.visible = precessing;
+      if (precessing) {
+        insetDot.center = new Vector2(
+          insetCenter.x + insetRadius * Math.cos(phi),
+          insetCenter.y + insetRadius * Math.sin(phi),
+        );
       }
     };
 

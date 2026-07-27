@@ -1,9 +1,8 @@
 /**
  * VectorDiagramNode.ts
  *
- * Live vector diagram for Screen 1. Makes visceral the core insight:
- * weight pulls down at the mass, but torque is perpendicular to L — so the
- * axle tip moves sideways, not down.
+ * Live vector diagram: mg down at the mass, L along the axle, τ ⊥ L at the
+ * tip of L (direction of dL/dt), Ω vertical.
  */
 
 import { Multilink } from "scenerystack/axon";
@@ -11,37 +10,45 @@ import { Bounds2, Vector2 } from "scenerystack/dot";
 import { Shape } from "scenerystack/kite";
 import { Circle, Line, Node, Path, Rectangle, Text, VBox } from "scenerystack/scenery";
 import { ArrowNode, PhetFont } from "scenerystack/scenery-phet";
+import { computeVectorDiagramGeometry } from "../../common/rigid-body/GyroscopeKinematics.js";
 import { StringManager } from "../../i18n/StringManager.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import type { SteadyPrecessionModel } from "../model/SteadyPrecessionModel.js";
 
-export const VECTOR_DIAGRAM_WIDTH = 280;
-export const VECTOR_DIAGRAM_HEIGHT = 300;
+export const VECTOR_DIAGRAM_WIDTH = 270;
+export const VECTOR_DIAGRAM_HEIGHT = 290;
 
-const ORIGIN_X = 130;
-const ORIGIN_Y = 155;
-const LABEL_FONT = new PhetFont({ size: 15, weight: "bold" });
-const LEGEND_FONT = new PhetFont({ size: 11 });
-const INSIGHT_FONT = new PhetFont({ size: 12 });
-const ARROW_OPTIONS = {
-  headHeight: 11,
-  headWidth: 11,
-  tailWidth: 3,
-  doubleHead: false,
-} as const;
+const ORIGIN = new Vector2(125, 148);
+const AXLE_LENGTH = 88;
+const MOMENTUM_LENGTH = 72;
+const LABEL_FONT = new PhetFont({ size: 14, weight: "bold" });
+const LEGEND_FONT = new PhetFont({ size: 10 });
+const INSIGHT_FONT = new PhetFont({ size: 11 });
+const ARROW = { headHeight: 10, headWidth: 10, tailWidth: 2.5, doubleHead: false } as const;
 
-function legendRow(colorProperty: typeof RigidBodyPrecessionColors.weightColorProperty, label: string): Node {
-  const swatch = new Rectangle(0, 0, 14, 3, {
-    fill: colorProperty,
-    centerY: 0,
+function legendRow(color: typeof RigidBodyPrecessionColors.weightColorProperty, label: string): Node {
+  return new Node({
+    children: [
+      new Rectangle(0, 0, 12, 3, { fill: color, centerY: 0 }),
+      new Text(label, { font: LEGEND_FONT, fill: color, left: 16, centerY: 0 }),
+    ],
   });
-  const text = new Text(label, {
-    font: LEGEND_FONT,
-    fill: colorProperty,
-    left: 20,
-    centerY: 0,
+}
+
+/** Small right-angle bracket between two vectors meeting at `corner`. */
+function rightAngleMarker(corner: Vector2, alongA: Vector2, alongB: Vector2, size: number): Path {
+  const a = alongA.normalized();
+  const b = alongB.normalized();
+  const p1 = corner.plus(a.times(size));
+  const p2 = corner.plus(a.times(size)).plus(b.times(size));
+  const p3 = corner.plus(b.times(size));
+  const s = new Shape();
+  s.moveTo(p1.x, p1.y).lineTo(p2.x, p2.y).lineTo(p3.x, p3.y);
+  return new Path(s, {
+    stroke: RigidBodyPrecessionColors.textColorProperty,
+    lineWidth: 1,
+    opacity: 0.6,
   });
-  return new Node({ children: [swatch, text] });
 }
 
 export class VectorDiagramNode extends Node {
@@ -51,41 +58,24 @@ export class VectorDiagramNode extends Node {
 
     const strings = StringManager.getInstance().getSteadyPrecessionStrings();
 
-    const title = new Text(strings.vectorDiagramTitleStringProperty, {
-      font: new PhetFont({ size: 14, weight: "bold" }),
-      fill: RigidBodyPrecessionColors.textColorProperty,
-      left: 8,
-      top: 6,
-      maxWidth: VECTOR_DIAGRAM_WIDTH - 16,
-    });
-    this.addChild(title);
-
-    const card = new Rectangle(4, 28, VECTOR_DIAGRAM_WIDTH - 8, VECTOR_DIAGRAM_HEIGHT - 36, {
-      fill: "rgba(15, 26, 46, 0.55)",
-      stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
-      lineWidth: 1,
-      cornerRadius: 8,
-    });
-    this.addChild(card);
-
     const insight = new Text(strings.vectorInsightStringProperty, {
       font: INSIGHT_FONT,
       fill: RigidBodyPrecessionColors.textColorProperty,
-      left: 12,
-      top: 34,
-      maxWidth: VECTOR_DIAGRAM_WIDTH - 24,
+      left: 8,
+      top: 4,
+      maxWidth: VECTOR_DIAGRAM_WIDTH - 16,
     });
     this.addChild(insight);
 
     const lOrbit = new Path(new Shape(), {
       stroke: RigidBodyPrecessionColors.precessionColorProperty,
       lineWidth: 1,
-      lineDash: [4, 4],
-      opacity: 0.55,
+      lineDash: [3, 3],
+      opacity: 0.5,
     });
     this.addChild(lOrbit);
 
-    const verticalAxis = new Line(ORIGIN_X, ORIGIN_Y - 90, ORIGIN_X, ORIGIN_Y + 65, {
+    const verticalAxis = new Line(ORIGIN.x, ORIGIN.y - 80, ORIGIN.x, ORIGIN.y + 60, {
       stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
       lineWidth: 1,
       lineDash: [3, 4],
@@ -96,38 +86,48 @@ export class VectorDiagramNode extends Node {
       stroke: RigidBodyPrecessionColors.gyroscopeColorProperty,
       lineWidth: 3,
       lineCap: "round",
+      opacity: 0.5,
     });
     this.addChild(axleLine);
 
     const pivot = new Circle(5, {
       fill: RigidBodyPrecessionColors.accentColorProperty,
-      center: new Vector2(ORIGIN_X, ORIGIN_Y),
+      center: ORIGIN,
     });
     this.addChild(pivot);
 
     const weightArrow = new ArrowNode(0, 0, 0, 0, {
-      ...ARROW_OPTIONS,
+      ...ARROW,
       fill: RigidBodyPrecessionColors.weightColorProperty,
       stroke: RigidBodyPrecessionColors.weightColorProperty,
     });
     const torqueArrow = new ArrowNode(0, 0, 0, 0, {
-      ...ARROW_OPTIONS,
+      ...ARROW,
       fill: RigidBodyPrecessionColors.torqueColorProperty,
       stroke: RigidBodyPrecessionColors.torqueColorProperty,
     });
     const momentumArrow = new ArrowNode(0, 0, 0, 0, {
-      ...ARROW_OPTIONS,
+      ...ARROW,
       fill: RigidBodyPrecessionColors.angularMomentumColorProperty,
       stroke: RigidBodyPrecessionColors.angularMomentumColorProperty,
     });
     const precessionArrow = new ArrowNode(0, 0, 0, 0, {
-      ...ARROW_OPTIONS,
+      ...ARROW,
       fill: RigidBodyPrecessionColors.precessionColorProperty,
       stroke: RigidBodyPrecessionColors.precessionColorProperty,
     });
 
+    const rightAngle = new Path(new Shape(), {
+      stroke: RigidBodyPrecessionColors.textColorProperty,
+      lineWidth: 1,
+      opacity: 0.55,
+    });
+
     const weightLabel = new Text("mg", { font: LABEL_FONT, fill: RigidBodyPrecessionColors.weightColorProperty });
-    const torqueLabel = new Text("τ", { font: LABEL_FONT, fill: RigidBodyPrecessionColors.torqueColorProperty });
+    const torqueLabel = new Text("τ = dL/dt", {
+      font: new PhetFont({ size: 11, weight: "bold" }),
+      fill: RigidBodyPrecessionColors.torqueColorProperty,
+    });
     const momentumLabel = new Text("L", {
       font: LABEL_FONT,
       fill: RigidBodyPrecessionColors.angularMomentumColorProperty,
@@ -137,79 +137,112 @@ export class VectorDiagramNode extends Node {
       fill: RigidBodyPrecessionColors.precessionColorProperty,
     });
 
+    const noTorqueMessage = new Text(strings.noTorqueMessageStringProperty, {
+      font: INSIGHT_FONT,
+      fill: RigidBodyPrecessionColors.textColorProperty,
+      center: new Vector2(VECTOR_DIAGRAM_WIDTH / 2, ORIGIN.y),
+      maxWidth: VECTOR_DIAGRAM_WIDTH - 24,
+      visible: false,
+    });
+
     this.addChild(momentumArrow);
     this.addChild(weightArrow);
     this.addChild(torqueArrow);
     this.addChild(precessionArrow);
+    this.addChild(rightAngle);
     this.addChild(weightLabel);
     this.addChild(torqueLabel);
     this.addChild(momentumLabel);
     this.addChild(precessionLabel);
+    this.addChild(noTorqueMessage);
 
     const legend = new VBox({
-      spacing: 3,
+      spacing: 2,
       align: "left",
       children: [
-        legendRow(RigidBodyPrecessionColors.weightColorProperty, "mg  weight"),
-        legendRow(RigidBodyPrecessionColors.angularMomentumColorProperty, "L   spin angular momentum"),
-        legendRow(RigidBodyPrecessionColors.torqueColorProperty, "τ   torque = r × F"),
-        legendRow(RigidBodyPrecessionColors.precessionColorProperty, "Ω   precession"),
+        legendRow(RigidBodyPrecessionColors.weightColorProperty, "mg"),
+        legendRow(RigidBodyPrecessionColors.angularMomentumColorProperty, "L"),
+        legendRow(RigidBodyPrecessionColors.torqueColorProperty, "τ ⊥ L"),
+        legendRow(RigidBodyPrecessionColors.precessionColorProperty, "Ω"),
       ],
-      left: 12,
-      bottom: VECTOR_DIAGRAM_HEIGHT - 12,
+      left: 8,
+      bottom: VECTOR_DIAGRAM_HEIGHT - 6,
     });
     this.addChild(legend);
+
+    const vectorNodes = [
+      axleLine,
+      momentumArrow,
+      weightArrow,
+      torqueArrow,
+      precessionArrow,
+      rightAngle,
+      weightLabel,
+      torqueLabel,
+      momentumLabel,
+      precessionLabel,
+      lOrbit,
+    ];
 
     const update = (): void => {
       const vectors = model.getVectors();
       const tilt = model.getParameters().tiltAngle;
       const phi = model.precessionAngleProperty.value;
       const atCom = model.pivotAtCenterOfMassProperty.value;
-      const hasTorque = vectors.torqueMagnitude > 1e-9;
+      const hasTorque = !atCom && vectors.torqueMagnitude > 1e-9;
 
-      const axleLength = 95;
-      const axleTip = new Vector2(
-        ORIGIN_X + axleLength * Math.sin(tilt) * Math.cos(phi),
-        ORIGIN_Y - axleLength * Math.cos(tilt),
+      const geom = computeVectorDiagramGeometry(ORIGIN, phi, tilt, AXLE_LENGTH, MOMENTUM_LENGTH, hasTorque);
+
+      noTorqueMessage.visible = atCom;
+      for (const n of vectorNodes) {
+        n.visible = !atCom;
+      }
+      if (atCom) {
+        return;
+      }
+
+      axleLine.setPoint1(ORIGIN.x, ORIGIN.y);
+      axleLine.setPoint2(geom.axleTip.x, geom.axleTip.y);
+
+      momentumArrow.setTailAndTip(ORIGIN.x, ORIGIN.y, geom.momentumTip.x, geom.momentumTip.y);
+      momentumLabel.left = geom.momentumTip.x + 5;
+      momentumLabel.centerY = geom.momentumTip.y - 3;
+
+      lOrbit.shape = Shape.ellipse(
+        geom.orbitCenter.x,
+        geom.orbitCenter.y,
+        Math.max(3, geom.orbitRadius),
+        Math.max(2, geom.orbitRadius * 0.25),
+        0,
       );
-      axleLine.setPoint1(ORIGIN_X, ORIGIN_Y);
-      axleLine.setPoint2(axleTip.x, axleTip.y);
-
-      const lScale = 78;
-      const lTip = new Vector2(ORIGIN_X + lScale * Math.sin(tilt) * Math.cos(phi), ORIGIN_Y - lScale * Math.cos(tilt));
-      momentumArrow.setTailAndTip(ORIGIN_X, ORIGIN_Y, lTip.x, lTip.y);
-      momentumLabel.left = lTip.x + 6;
-      momentumLabel.centerY = lTip.y - 4;
-
-      const orbitR = lScale * Math.sin(tilt);
-      const orbitY = ORIGIN_Y - lScale * Math.cos(tilt);
-      lOrbit.shape = Shape.ellipse(ORIGIN_X, orbitY, Math.max(4, orbitR), Math.max(3, orbitR * 0.28), 0);
       lOrbit.visible = hasTorque;
 
-      weightArrow.visible = !atCom;
-      weightLabel.visible = !atCom;
-      if (!atCom) {
-        weightArrow.setTailAndTip(axleTip.x, axleTip.y, axleTip.x, axleTip.y + 48);
-        weightLabel.left = axleTip.x + 8;
-        weightLabel.top = axleTip.y + 28;
-      }
+      // Weight at mass tip, straight down
+      weightArrow.setTailAndTip(geom.axleTip.x, geom.axleTip.y, geom.axleTip.x, geom.axleTip.y + 44);
+      weightLabel.left = geom.axleTip.x + 6;
+      weightLabel.top = geom.axleTip.y + 24;
 
-      // τ attached at the tip of L, tangential to the precession circle of L
       torqueArrow.visible = hasTorque;
       torqueLabel.visible = hasTorque;
-      if (hasTorque) {
-        const tauLen = 52;
-        const tauTip = new Vector2(lTip.x + tauLen * Math.cos(phi + Math.PI / 2), lTip.y);
-        torqueArrow.setTailAndTip(lTip.x, lTip.y, tauTip.x, tauTip.y);
-        torqueLabel.left = tauTip.x + (tauTip.x >= lTip.x ? 4 : -16);
-        torqueLabel.centerY = tauTip.y - 2;
-
-        precessionArrow.setTailAndTip(ORIGIN_X, ORIGIN_Y, ORIGIN_X, ORIGIN_Y - 50);
-        precessionLabel.left = ORIGIN_X + 8;
-        precessionLabel.bottom = ORIGIN_Y - 52;
-      }
+      rightAngle.visible = hasTorque;
       precessionArrow.visible = hasTorque;
       precessionLabel.visible = hasTorque;
+
+      if (hasTorque) {
+        const tauLen = 48;
+        const tauTip = geom.momentumTip.plus(geom.torqueDirection.times(tauLen));
+        torqueArrow.setTailAndTip(geom.momentumTip.x, geom.momentumTip.y, tauTip.x, tauTip.y);
+        torqueLabel.left = tauTip.x + (geom.torqueDirection.x >= 0 ? 3 : -52);
+        torqueLabel.centerY = tauTip.y - 2;
+
+        // Right-angle marker between L and τ at the tip of L
+        const lDir = geom.momentumTip.minus(ORIGIN);
+        rightAngle.shape = rightAngleMarker(geom.momentumTip, lDir, geom.torqueDirection, 12).shape ?? new Shape();
+
+        precessionArrow.setTailAndTip(ORIGIN.x, ORIGIN.y, ORIGIN.x, ORIGIN.y - 46);
+        precessionLabel.left = ORIGIN.x + 6;
+        precessionLabel.bottom = ORIGIN.y - 48;
+      }
     };
 
     Multilink.multilink(

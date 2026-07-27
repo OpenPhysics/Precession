@@ -10,8 +10,10 @@
     "armMass": "Masa del brazo (kg)",
     "pivotDistance": "Pivote a masa (m)",
     "pivotAtCom": "Pivote en el centro de masa",
+    "gyroscopeTitle": "Giroscopio",
     "vectorDiagramTitle": "¿Por qué de lado, no hacia abajo?",
-    "vectorInsight": "La gravedad tira hacia abajo — el par es perpendicular a L, así que la punta se mueve de lado.",
+    "vectorInsight": "La gravedad tira hacia abajo — pero τ = dL/dt es ⊥ L.",
+    "noTorqueMessage": "Pivote en el CM: τ = 0, sin precesión.",
     "graphTitle": "Ángulo de precesión φ vs. tiempo",
     "readoutsTitle": "Tasas",
     "formulaHint": "Ω = τ / (I ω)  —  más giro → precesión más lenta"
