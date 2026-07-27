@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeAxleGeometry,
   computeVectorDiagramGeometry,
+  horizontalOrbitTangent,
   projectAxlePoint,
 } from "../src/common/rigid-body/GyroscopeKinematics.js";
 
@@ -34,5 +35,14 @@ describe("GyroscopeKinematics", () => {
   it("returns zero torque direction when hasTorque is false", () => {
     const geom = computeVectorDiagramGeometry(PIVOT, 0, TILT, 90, 72, false);
     expect(geom.torqueDirection.equals(Vector2.ZERO)).toBe(true);
+  });
+
+  it("torque direction is defined at side-view turning points", () => {
+    expect(horizontalOrbitTangent(0).equals(new Vector2(-1, 0))).toBe(true);
+    expect(horizontalOrbitTangent(Math.PI).equals(new Vector2(1, 0))).toBe(true);
+
+    const atZero = computeVectorDiagramGeometry(PIVOT, 0, TILT, 90, 72, true);
+    expect(atZero.torqueDirection.magnitude).toBeCloseTo(1, 5);
+    expect(atZero.torqueDirection.x).toBeCloseTo(-1, 5);
   });
 });

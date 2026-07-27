@@ -37,6 +37,24 @@ export type VectorDiagramGeometry = {
   readonly hasTorque: boolean;
 };
 
+const TORQUE_DIRECTION_EPSILON = 1e-6;
+
+/**
+ * Unit tangent to the side-view projection of the horizontal L-tip orbit.
+ * At φ = 0 or π the x-derivative vanishes in projection; use the horizontal
+ * precession direction instead of normalizing a zero vector.
+ */
+export function horizontalOrbitTangent(phi: number): Vector2 {
+  const sinPhi = Math.sin(phi);
+  if (Math.abs(sinPhi) > TORQUE_DIRECTION_EPSILON) {
+    return new Vector2(-sinPhi, 0).normalized();
+  }
+
+  const cosPhi = Math.cos(phi);
+  const x = cosPhi === 0 ? -1 : -Math.sign(cosPhi);
+  return new Vector2(x, 0);
+}
+
 /**
  * Project a point along the axle into the schematic side view.
  *
@@ -113,8 +131,8 @@ export function computeVectorDiagramGeometry(
   const orbitRadius = momentumLengthPx * Math.sin(tilt);
   const orbitCenter = new Vector2(pivot.x, pivot.y - momentumLengthPx * Math.cos(tilt));
 
-  // Tangent to the horizontal precession circle: (-sin φ, 0) in the side view
-  const torqueDirection = hasTorque ? new Vector2(-Math.sin(phi), 0).normalized() : Vector2.ZERO;
+  // Tangent to the horizontal precession circle projected into the side view.
+  const torqueDirection = hasTorque ? horizontalOrbitTangent(phi) : Vector2.ZERO;
 
   return {
     pivot,
