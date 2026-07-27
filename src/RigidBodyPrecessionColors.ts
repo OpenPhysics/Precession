@@ -23,7 +23,7 @@
  * Add a new ProfileColorProperty entry to the RigidBodyPrecessionColors object below.
  * Always provide both "default" and "projector" values.
  */
-import { ProfileColorProperty } from "scenerystack/scenery";
+import { Color, ProfileColorProperty } from "scenerystack/scenery";
 import RigidBodyPrecessionNamespace from "./RigidBodyPrecessionNamespace.js";
 
 const RigidBodyPrecessionColors = {
@@ -145,6 +145,18 @@ const RigidBodyPrecessionColors = {
   graphTraceColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "graphTrace", {
     default: "#81c784",
     projector: "#2e7d32",
+  }),
+
+  /** Translucent ground ellipse under the gyroscope (panel-border hue @ 40%). */
+  sceneGroundColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "sceneGround", {
+    default: new Color(15, 52, 96, 0.4),
+    projector: new Color(153, 153, 153, 0.35),
+  }),
+
+  /** Top-view inset card fill (graph-background hue @ 70%). */
+  sceneInsetCardColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "sceneInsetCard", {
+    default: new Color(15, 26, 46, 0.7),
+    projector: new Color(240, 240, 240, 0.85),
   }),
 };
 

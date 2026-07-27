@@ -30,7 +30,7 @@ export class GyroscopeSceneNode extends Node {
     this.localBounds = new Bounds2(0, 0, GYROSCOPE_SCENE_WIDTH, GYROSCOPE_SCENE_HEIGHT);
 
     const ground = new Path(Shape.ellipse(PIVOT.x, PIVOT.y + 6, 155, 24, 0), {
-      fill: "rgba(15, 52, 96, 0.4)",
+      fill: RigidBodyPrecessionColors.sceneGroundColorProperty,
       stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
       lineWidth: 1,
     });
@@ -111,7 +111,7 @@ export class GyroscopeSceneNode extends Node {
     const insetRadius = INSET_SIZE / 2 - 6;
 
     const insetCard = new Rectangle(insetX, insetY, INSET_SIZE, INSET_SIZE, {
-      fill: "rgba(15, 26, 46, 0.7)",
+      fill: RigidBodyPrecessionColors.sceneInsetCardColorProperty,
       stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
       lineWidth: 1,
       cornerRadius: 6,
