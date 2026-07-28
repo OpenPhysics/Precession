@@ -32,29 +32,6 @@ src/preferences/
 Data flows Model → View through AXON `Property` objects (`.link()` / `.lazyLink()`). The view never
 integrates physics; the model never imports scenery.
 
-## Forking checklist
-
-### Automated rename (recommended)
-
-```sh
-npm run rename -- --id my-sim --name "My Simulation"
-npm run check
-```
-
-`scripts/rename-sim.ts` replaces template identifiers in file contents and renames files/folders.
-
-### Manual steps (after rename or if skipping the script)
-
-1. **`doc/model.md`** — educator physics (equations, ranges, simplifications).
-2. **`doc/implementation-notes.md`** — this file, rewritten for your architecture.
-3. **`RigidBodyPrecessionModel`** — real Properties, `step(dt)`, `reset()`; compose `TimeModel` if animated.
-4. **`RigidBodyPrecessionScreenView`** — play area + controls; wire `ResetAllButton` to `model.reset()`.
-5. **`RigidBodyPrecessionColors.ts`** — sim palette (default + projector profiles).
-6. **Locale JSON** — title, strings, `a11y` keys; register locales in `init.ts`.
-7. **`public/icons/icon.svg`** → `npm run icons`; align theme color in `index.html` / vite config.
-8. **`tests/setup.ts`** — `init({ name: … })` must match `package.json` name after rename.
-9. **`CLAUDE.md`** — sim-specific file map and pitfalls for AI assistants.
-
 ## Common components (keep when forking)
 
 ### SimPanel

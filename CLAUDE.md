@@ -4,9 +4,10 @@ Sim-specific context for AI assistants. General SceneryStack guidance: [OpenPhys
 
 ## Project
 
-Reusable single-screen SceneryStack template and **canonical accessibility reference** for
-OpenPhysics sims. Run `npm run rename` to fork it to a new sim name automatically. For
-multi-screen sims, see [`doc/multi-screen.md`](doc/multi-screen.md).
+Rigid-body dynamics of a spinning gyroscope across three screens — **Steady Precession**,
+**Nutation**, and **Torque-Free Tumbling**. Forked from `TemplateSingleSim`, it keeps that
+template's **canonical accessibility** wiring. For multi-screen sims, see
+[`doc/multi-screen.md`](doc/multi-screen.md).
 
 ## Key files
 
@@ -28,7 +29,6 @@ multi-screen sims, see [`doc/multi-screen.md`](doc/multi-screen.md).
 | `src/common/SimButtonOptions.ts` | Flat button-appearance option bundles + light-control-surface combo-box options |
 | `src/common/TimeModel.ts` | Composable play/pause + elapsed-time model for animated sims |
 | `scripts/generate-icons.ts` | PNG icons from `public/icons/icon.svg` |
-| `scripts/rename-sim.ts` | Automated fork/rename across all files and folders |
 
 ## Physics
 
@@ -153,7 +153,6 @@ Fleet-standard Vitest layout (keep when forking):
 | `playwright.config.ts` | Chromium project + Vite webServer for fuzz |
 
 - Put unit tests only under root `tests/`, mirroring `src/` (never co-locate or use `__tests__/`).
-- Change the `name` passed to `init()` in `tests/setup.ts` to match `package.json` after `npm run rename`.
 - Run `npm test`. CI runs the suite when a `test` script is present.
 - Expand `memory-leak.test.ts` for any component that adds/removes nodes or links Properties at
   runtime (see OpticsLab for a deep suite).
@@ -176,27 +175,6 @@ npm run lint && npm run check && npm run build && npm test
 | `npm run test:fuzz` | Playwright fuzz smoke |
 | `npm run test:fuzz:quick` | 10s fuzz |
 | `npm run icons` | Regenerate PWA icons |
-| `npm run rename` | Automated fork/rename (`--id`, `--name`) |
-
-## Customizing a new sim from this template
-
-### Automated rename (recommended)
-
-```sh
-npm run rename -- --id friction --name "Friction"
-# or for multi-word names:
-npm run rename -- --id wave-interference --name "Wave Interference"
-```
-
-This replaces all template identifiers in file contents and renames files/folders. Run
-`npm run check` afterwards to verify TypeScript is clean.
-
-### Manual checklist (if not using the rename script)
-
-1. **Rename** — replace `precession` / `Rigid Body Precession` / `Sim` prefix in `init.ts`, `brand.ts`, `package.json`, class names, and screen folders
-2. **Locale** — add `strings_XX.json`, register in `StringManager`, add locale to `init.ts` `availableLocales`
-3. **Icon** — edit `public/icons/icon.svg`, run `npm run icons`; match theme color in `index.html` / `vite.config.ts`
-4. **Colors** — edit `RigidBodyPrecessionColors.ts` (`default` + `projector` profiles per property)
 
 ## Multi-screen sims
 
@@ -209,18 +187,6 @@ Summary:
 - For shared state, create a root model passed to each per-screen model
 - Add `src/common/{SimName}ScreenIcons.ts` with `create{Screen}Icon()` factories; wire `homeScreenIcon` + `navigationBarIcon` on each Screen
 - Register all screens in the `screens` array in `main.ts`
-
-## Using this template beyond a direct copy
-
-| Approach | When to use |
-|---|---|
-| **GitHub template** ("Use this template" button) | Starting a single new sim |
-| `npm run rename` after cloning | Same, automated |
-| **npm workspace / monorepo** | Managing a suite of sims with shared tooling |
-| **`npm create` scaffolder** | Org-wide standardized sim bootstrapping |
-| **git subtree** for pulling updates | Keeping forks in sync with template improvements |
-
-See `doc/multi-screen.md` → "Using this template beyond a direct copy" for details on each approach.
 
 ## PWA
 
