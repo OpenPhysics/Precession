@@ -9,6 +9,8 @@
 
 import { describe, expect, it } from "vitest";
 import { TimeModel } from "../src/common/TimeModel.js";
+import { SteadyPrecessionModel } from "../src/steady-precession-screen/model/SteadyPrecessionModel.js";
+import { TorqueFreeModel } from "../src/torque-free-screen/model/TorqueFreeModel.js";
 
 /**
  * Force garbage collection with multiple passes. When `earlyExitRef` is supplied
@@ -56,6 +58,33 @@ describe("Memory leak regression", () => {
     const model = new TimeModel();
     model.dispose();
     expect(() => model.dispose()).not.toThrow();
+  });
+
+  // The screen models each hold a web of DerivedProperties over their own state, plus
+  // lazyLink relaunch listeners. Every one of those has to be released by dispose(),
+  // or switching screens leaks a whole integrator.
+  it("SteadyPrecessionModel is collected after dispose", async () => {
+    const ref = (() => {
+      const model = new SteadyPrecessionModel();
+      model.step(1 / 60);
+      const weak = new WeakRef<object>(model);
+      model.dispose();
+      return weak;
+    })();
+    await forceGC(ref);
+    expect(ref.deref()).toBeUndefined();
+  });
+
+  it("TorqueFreeModel is collected after dispose", async () => {
+    const ref = (() => {
+      const model = new TorqueFreeModel();
+      model.stepOnce(1 / 60);
+      const weak = new WeakRef<object>(model);
+      model.dispose();
+      return weak;
+    })();
+    await forceGC(ref);
+    expect(ref.deref()).toBeUndefined();
   });
 
   it("repeated create/dispose cycles leave no survivors", async () => {

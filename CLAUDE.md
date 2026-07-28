@@ -24,6 +24,7 @@ template's **canonical accessibility** wiring. For multi-screen sims, see
 | `src/common/rigid-body/HeavySymmetricTopPhysics.ts` | Screen 2's RK4 integrator, invariants, turning points |
 | `src/common/rigid-body/TorqueFreePhysics.ts` | Screen 3's Euler + quaternion RK4, invariants, stability |
 | `src/common/rigid-body/TopTipTrace.ts` | Ring buffer of (t, θ, φ) samples behind the tip path and θ(t) graph |
+| `src/common/rigid-body/FlipTracker.ts` | Hysteresis flip counter + period timer behind Screen 3's flip readouts |
 | `src/common/view/Camera3D.ts` | **The** 3-D → 2-D map: projection, depth ordering, circle→ellipse, Lambert shading |
 | `src/common/view/CylinderShapes.ts` | Exact silhouette of a short cylinder at any tilt (wheel, collar, stand post) |
 | `src/common/view/SpinningWheelNode.ts` | The solid gyroscope wheel, shared by Screens 1 and 2 |
@@ -72,6 +73,10 @@ real nutation. Key entry points:
   and the spin below which no steady precession exists
 - `totalEnergy`, `verticalAngularMomentum`, `spinAngularMomentum` — invariants, exact
   without friction; the test suite asserts they hold to 6+ decimal places over 10 s
+- `isSleepingTopStable` — whether a top spun this fast would *sleep* upright
+  (I₃²ω₃² > 4 I₁ M g l). Surfaced as `sleepingStableProperty` and as a panel readout,
+  and `NUTATION_TILT_RANGE` bottoms out at 3° so the prediction can actually be tested:
+  above the critical spin the axis holds near vertical, below it the top falls to the stop
 
 Friction is a phenomenological viscous model (`tipDrag` on the center of mass, `spinDrag`
 on the spin), off by default. `maxTilt` is an inelastic mechanical stop where the axle
@@ -98,6 +103,10 @@ broken by the inertia tensor instead. Key entry points:
 - `kineticEnergy`, `angularMomentumMagnitude` — invariants, exact; the test suite asserts
   they hold to 8 decimals across a run containing several flips, and that L stays fixed in
   *direction* too
+- `axisMomentumAlignment` — the launch axis's share of L, (Iᵢωᵢ)/|L|. +1 at launch, −1
+  once the block has turned over, and pinned near +1 forever about a stable axis. This is
+  what `FlipTracker` watches to turn "it flipped" into a count and a period; the stability
+  readout is a *prediction* from the inertia tensor, the flip count is the *measurement*
 
 `TUMBLE_NUDGE_FRACTION` adds a deliberate transverse wobble at launch. Rotation exactly
 about the intermediate axis is a genuine solution, so with no nudge the block would spin
@@ -155,15 +164,30 @@ export class MyModel implements TModel {
   public readonly timer = new TimeModel();   // starts paused; pass true to auto-play
 
   public step(dt: number): void {
-    this.timer.step(dt);
-    // use this.timer.timeProperty.value for physics
+    if (!this.timer.isPlayingProperty.value) { return; }
+    this.stepOnce(this.timeSpeedProperty.value === TimeSpeed.SLOW ? dt * 0.25 : dt);
   }
+
+  /** Advances regardless of play/pause — this is what step-forward calls. */
+  public stepOnce(dt: number): void {
+    this.timer.timeProperty.value += dt;
+    // integrate the physics by dt
+  }
+
   public reset(): void { this.timer.reset(); /* … */ }
 }
 ```
 
+**Gate `step()` on `isPlayingProperty`, not just the clock.** `timer.step(dt)` freezes
+`timeProperty` when paused but does nothing to stop a model that keeps integrating below
+it — the sim then animates straight through a pause while stamping every sample at the
+same frozen time, which quietly corrupts any slope measured off that series. All three
+screens use the shape above.
+
 Wire the view to `TimeControlNode` from `scenerystack/scenery-phet` binding on
-`model.timer.isPlayingProperty`.
+`model.timer.isPlayingProperty`, and point `stepForwardButtonOptions.listener` at
+`model.stepOnce` — step-forward has to work in exactly the state where `step()` is a
+no-op.
 
 ### SimButtonOptions
 
@@ -223,7 +247,9 @@ Fleet-standard Vitest layout (keep when forking):
 | `tests/Camera3D.test.ts` | Depth ordering and exact circle→ellipse projection |
 | `tests/HeavySymmetricTopPhysics.test.ts` | Screen 2 integrator vs. analytic results (invariants, turning points, fast-top limits) |
 | `tests/TorqueFreePhysics.test.ts` | Screen 3 invariants across flips, axis stability, quaternion normalization |
-| `tests/NutationModel.test.ts` | Screen 2 model wiring: release, re-release, trace bounds, friction |
+| `tests/FlipTracker.test.ts` | Hysteresis behaviour: no false flips near the crossing, interval timing |
+| `tests/NutationModel.test.ts` | Screen 2 model wiring: release, re-release, trace bounds, friction, sleeping top |
+| `tests/TorqueFreeModel.test.ts` | Screen 3 model wiring: flip counting vs. predicted stability, pause/slow motion |
 | `tests/memory-leak.test.ts` | WeakRef + `forceGC` dispose regression (fleet pattern) |
 | `tests/fuzz/fuzz.spec.ts` | Optional Playwright fuzz smoke via joist `?fuzz` |
 | `playwright.config.ts` | Chromium project + Vite webServer for fuzz |

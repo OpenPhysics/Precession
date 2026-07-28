@@ -4,9 +4,10 @@
  * Model for Screen 1 — steady precession of a symmetric gyroscope under gravity.
  */
 
-import { BooleanProperty, DerivedProperty, NumberProperty } from "scenerystack/axon";
+import { BooleanProperty, DerivedProperty, EnumerationProperty, NumberProperty } from "scenerystack/axon";
 import { toFixed } from "scenerystack/dot";
 import type { TModel } from "scenerystack/joist";
+import { TimeSpeed } from "scenerystack/scenery-phet";
 import { PrecessionDataSeries } from "../../common/rigid-body/PrecessionDataSeries.js";
 import {
   GYROSCOPIC_RATIO_LIMIT,
@@ -31,8 +32,18 @@ import {
   SPIN_UP_TIME_CONSTANT_S,
 } from "../../RigidBodyPrecessionConstants.js";
 
+/** Slow motion factor, matching the other two screens. */
+const SLOW_MOTION_FACTOR = 0.25;
+
 export class SteadyPrecessionModel implements TModel {
   public readonly timer = new TimeModel(true);
+
+  /**
+   * Normal or slow motion. Ω runs up to about 1 Hz across the sliders, which is quick
+   * enough that following a single revolution — and reading the tilt off the scene
+   * while it happens — is easier at quarter speed.
+   */
+  public readonly timeSpeedProperty = new EnumerationProperty(TimeSpeed.NORMAL);
 
   public readonly spinRateProperty = new NumberProperty(DEFAULT_SPIN_RATE_RAD_S);
   public readonly armMassProperty = new NumberProperty(DEFAULT_ARM_MASS_KG, { units: "kg" });
@@ -134,7 +145,22 @@ export class SteadyPrecessionModel implements TModel {
   }
 
   public step(dt: number): void {
-    this.timer.step(dt);
+    if (!this.timer.isPlayingProperty.value) {
+      return;
+    }
+    this.stepOnce(this.timeSpeedProperty.value === TimeSpeed.SLOW ? dt * SLOW_MOTION_FACTOR : dt);
+  }
+
+  /**
+   * Advance the physics by dt regardless of the play/pause state (used by step-forward).
+   *
+   * The clock advances here rather than through `timer.step`, so that the sampled
+   * φ(t) series and the measured-slope readout stay in step with the motion: a
+   * step-forward that moved the gyroscope but not the clock would push two samples
+   * at the same time and corrupt the slope.
+   */
+  public stepOnce(dt: number): void {
+    this.timer.timeProperty.value += dt;
     const next = stepSteadyPrecession(
       this.getParameters(),
       {
@@ -159,6 +185,7 @@ export class SteadyPrecessionModel implements TModel {
 
   public reset(): void {
     this.timer.reset();
+    this.timeSpeedProperty.reset();
     this.spinRateProperty.reset();
     this.armMassProperty.reset();
     this.pivotToMassDistanceProperty.reset();
@@ -173,6 +200,7 @@ export class SteadyPrecessionModel implements TModel {
 
   public dispose(): void {
     this.timer.dispose();
+    this.timeSpeedProperty.dispose();
     this.spinRateProperty.dispose();
     this.armMassProperty.dispose();
     this.pivotToMassDistanceProperty.dispose();

@@ -26,7 +26,7 @@ const NOTE_FONT = new PhetFont({ size: 11 });
 const SLIDER_WIDTH = TORQUE_FREE_PANEL_WIDTH - 56;
 
 function readoutRow(
-  label: string,
+  label: string | TReadOnlyProperty<string>,
   valueProperty: TReadOnlyProperty<string>,
   colorProperty: typeof RigidBodyPrecessionColors.textColorProperty | TReadOnlyProperty<string>,
 ): Node {
@@ -133,6 +133,16 @@ export class TorqueFreeControlPanel extends SimPanel {
       rate > 0 ? `${toFixed(rate, 2)} /s` : "—",
     );
 
+    // The stability readout above is a prediction from the inertia tensor alone. These
+    // two are the measurement: a stable axis sits at zero flips for as long as the sim
+    // runs, and the intermediate one keeps ticking up at a period the student can time
+    // against the ω₂ sign changes on the graph.
+    const flipCountValueProperty = new DerivedProperty([model.flipCountProperty], (count) => `${count}`);
+    const flipPeriodValueProperty = new DerivedProperty(
+      [model.flipPeriodProperty, strings.noFlipsYetStringProperty],
+      (period, noneYet) => (period > 0 ? `${toFixed(period, 2)} s` : noneYet),
+    );
+
     // RichText, not Text: a long sentence given only a maxWidth is scaled down to fit
     // on one line, which at this size is unreadable. lineWrap wraps it instead.
     const explanation = new RichText(strings.stabilityRuleStringProperty, {
@@ -158,8 +168,22 @@ export class TorqueFreeControlPanel extends SimPanel {
         nudgeCheckbox,
         separator,
         readoutHeader,
-        readoutRow("axis", stabilityValueProperty, stabilityColorProperty),
-        readoutRow("growth", growthValueProperty, RigidBodyPrecessionColors.warningColorProperty),
+        readoutRow(strings.axisLabelStringProperty, stabilityValueProperty, stabilityColorProperty),
+        readoutRow(
+          strings.growthLabelStringProperty,
+          growthValueProperty,
+          RigidBodyPrecessionColors.warningColorProperty,
+        ),
+        readoutRow(
+          strings.flipsLabelStringProperty,
+          flipCountValueProperty,
+          RigidBodyPrecessionColors.precessionColorProperty,
+        ),
+        readoutRow(
+          strings.flipPeriodLabelStringProperty,
+          flipPeriodValueProperty,
+          RigidBodyPrecessionColors.precessionColorProperty,
+        ),
         readoutRow("T", energyValueProperty, RigidBodyPrecessionColors.textColorProperty),
         readoutRow("|L|", momentumValueProperty, RigidBodyPrecessionColors.textColorProperty),
         conservedNote,

@@ -188,8 +188,16 @@ export const NUTATION_SPIN_RANGE = { min: 2, max: 20 };
  */
 export const NUTATION_MAX_TILT_RAD = Math.PI / 2;
 
-/** Release-tilt range for the nutation screen (rad) — 15° to 80°. */
-export const NUTATION_TILT_RANGE = { min: (15 * Math.PI) / 180, max: (80 * Math.PI) / 180 };
+/**
+ * Release-tilt range for the nutation screen (rad) — 3° to 80°.
+ *
+ * The bottom of the range reaches the near-vertical release that separates a top
+ * that *sleeps* from one that topples: above the critical spin the axis stays put,
+ * below it the top flops over to the mechanical stop. 3° rather than 0° because the
+ * Euler angles are singular on the axis itself, and a real top is never released
+ * perfectly upright either.
+ */
+export const NUTATION_TILT_RANGE = { min: (3 * Math.PI) / 180, max: (80 * Math.PI) / 180 };
 
 /** Launch spin range for the torque-free screen (rad/s). */
 export const TUMBLE_SPIN_RANGE = { min: 2, max: 12 };

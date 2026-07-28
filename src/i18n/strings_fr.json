@@ -38,7 +38,11 @@
     "readoutsTitle": "Mesures",
     "conservedNote": "E et p_φ restent constants tant que le frottement est désactivé.",
     "belowCritical": "Rotation propre sous la valeur critique — aucune précession régulière n'existe à cette inclinaison, la toupie doit donc nuter.",
-    "insight": "Une vraie toupie est lâchée, pas lancée à la bonne vitesse : l'axe descend, gagne de la précession, puis remonte."
+    "insight": "Une vraie toupie est lâchée, pas lancée à la bonne vitesse : l'axe descend, gagne de la précession, puis remonte.",
+    "sleepLabel": "Dressée à la verticale",
+    "sleeps": "dort",
+    "topples": "bascule",
+    "sleepNote": "Ramenez l'inclinaison au lâcher à son minimum pour vérifier cette prédiction."
   },
   "torqueFree": {
     "sceneTitle": "Bloc en culbute — aucun couple",
@@ -53,7 +57,12 @@
     "stable": "stable",
     "unstable": "instable",
     "stabilityRule": "Un corps libre tourne régulièrement autour de son axe d'inertie maximale ou minimale. Autour de l'axe intermédiaire, la moindre oscillation grandit jusqu'à faire basculer le corps — encore et encore.",
-    "conservedNote": "T et |L| restent exactement constants, basculements compris. Rien ne pousse le bloc."
+    "conservedNote": "T et |L| restent exactement constants, basculements compris. Rien ne pousse le bloc.",
+    "axisLabel": "axe",
+    "growthLabel": "croissance",
+    "flipsLabel": "basculements",
+    "flipPeriodLabel": "par basculement",
+    "noFlipsYet": "aucun pour l'instant"
   },
   "a11y": {
     "steadyPrecession": {
@@ -74,7 +83,7 @@
     "nutation": {
       "screenSummary": {
         "playArea": "La zone de jeu montre une toupie pesante sur son pivot, la trajectoire tracée par le bout de l'axe, les deux cercles délimitant la bande de nutation et un graphique de l'inclinaison en fonction du temps.",
-        "controlArea": "La zone de contrôle permet de régler la rotation propre et l'inclinaison au lâcher, de choisir le mode de lâcher, d'activer le frottement et de relâcher la toupie. Les affichages donnent la bande de nutation, les fréquences et la rotation critique.",
+        "controlArea": "La zone de contrôle permet de régler la vitesse de rotation et l'inclinaison au lâcher, de choisir le mode de lâcher, d'activer ou non le frottement et de relâcher la toupie. Les affichages donnent la bande de nutation, les fréquences de nutation et de précession, la rotation critique, et si une toupie tournant à cette vitesse dormirait à la verticale.",
         "interactionHint": "Lâchez la toupie au repos pour voir les points de rebroussement, puis essayez de la pousser en arrière ou en avant."
       },
       "currentDetailsPattern": "L'axe est incliné de {{tilt}} degrés, nutant entre {{thetaMin}} et {{thetaMax}} degrés. Précession moyenne {{precessionHz}} hertz, nutation {{nutationHz}} hertz.",
@@ -89,10 +98,10 @@
     "torqueFree": {
       "screenSummary": {
         "playArea": "La zone de jeu montre un bloc rectangulaire en culbute sans couple, une flèche fixe pour le moment cinétique, une flèche mobile pour la vitesse angulaire avec sa trace, et un graphique des trois composantes de rotation en fonction du temps.",
-        "controlArea": "La zone de commande permet de choisir l'axe principal de rotation, de régler la vitesse de rotation initiale et d'activer ou non l'oscillation de lancement. Les valeurs affichées donnent la stabilité de l'axe choisi, le taux de croissance d'une perturbation et les deux quantités conservées.",
+        "controlArea": "La zone de contrôle permet de choisir l'axe principal de rotation du bloc, de régler la vitesse de lancement et d'activer ou non l'oscillation initiale. Les affichages donnent la stabilité de l'axe choisi, le taux de croissance d'une perturbation, le nombre de basculements et le temps moyen entre eux, ainsi que les deux quantités conservées.",
         "interactionHint": "Faites tourner le bloc autour de son axe d'inertie maximale et observez sa stabilité, puis passez à l'axe intermédiaire et observez les basculements."
       },
-      "currentDetailsPattern": "Les composantes de rotation sont {{omega1}}, {{omega2}} et {{omega3}} radians par seconde autour des axes d'inertie maximale, intermédiaire et minimale.",
+      "currentDetailsPattern": "Les composantes de rotation sont {{omega1}}, {{omega2}} et {{omega3}} radians par seconde autour des axes d'inertie maximale, intermédiaire et minimale. Basculements jusqu'ici : {{flips}}.",
       "controls": {
         "spinAxis": "Axe de rotation du bloc",
         "spinRate": "Vitesse de rotation initiale",

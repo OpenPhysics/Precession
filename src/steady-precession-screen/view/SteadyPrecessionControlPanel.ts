@@ -5,13 +5,14 @@
  * plus structured τ / Ω readouts.
  */
 
-import { DerivedProperty, NumberProperty, type TReadOnlyProperty } from "scenerystack/axon";
-import { clamp, Dimension2, Range, toFixed } from "scenerystack/dot";
+import { DerivedProperty, type NumberProperty, type TReadOnlyProperty } from "scenerystack/axon";
+import { Dimension2, Range, toFixed } from "scenerystack/dot";
 import { HBox, Line, type Node, RichText, Text, VBox } from "scenerystack/scenery";
 import { NumberControl, PhetFont } from "scenerystack/scenery-phet";
 import { Checkbox } from "scenerystack/sun";
 import { FLAT_RECTANGULAR_BUTTON_OPTIONS } from "../../common/SimButtonOptions.js";
 import { SimPanel } from "../../common/SimPanel.js";
+import { createUnitProxy } from "../../common/view/UnitProxyProperty.js";
 import { StringManager } from "../../i18n/StringManager.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import {
@@ -74,22 +75,7 @@ export class SteadyPrecessionControlPanel extends SimPanel {
     const a11y = StringManager.getInstance().getSteadyPrecessionA11yStrings();
 
     const spinHzRange = new Range(SPIN_RATE_RANGE.min / (2 * Math.PI), SPIN_RATE_RANGE.max / (2 * Math.PI));
-    const spinHzProperty = new NumberProperty(
-      clamp(model.spinRateProperty.value / (2 * Math.PI), spinHzRange.min, spinHzRange.max),
-      { units: "Hz" },
-    );
-    let suppressSpinLink = false;
-    model.spinRateProperty.link((spinRate) => {
-      if (suppressSpinLink) {
-        return;
-      }
-      spinHzProperty.value = clamp(spinRate / (2 * Math.PI), spinHzRange.min, spinHzRange.max);
-    });
-    spinHzProperty.lazyLink((hz) => {
-      suppressSpinLink = true;
-      model.spinRateProperty.value = hz * (2 * Math.PI);
-      suppressSpinLink = false;
-    });
+    const spinHzProperty = createUnitProxy(model.spinRateProperty, 1 / (2 * Math.PI), spinHzRange, "Hz");
 
     const spinControl = createNumberControl(
       strings.spinRateStringProperty,
@@ -120,22 +106,7 @@ export class SteadyPrecessionControlPanel extends SimPanel {
 
     // Tilt is in degrees on screen but radians in the model.
     const tiltDegreesRange = new Range((TILT_ANGLE_RANGE.min * 180) / Math.PI, (TILT_ANGLE_RANGE.max * 180) / Math.PI);
-    const tiltDegreesProperty = new NumberProperty(
-      clamp((model.tiltAngleProperty.value * 180) / Math.PI, tiltDegreesRange.min, tiltDegreesRange.max),
-      { units: "°" },
-    );
-    let suppressTiltLink = false;
-    model.tiltAngleProperty.link((radians) => {
-      if (suppressTiltLink) {
-        return;
-      }
-      tiltDegreesProperty.value = clamp((radians * 180) / Math.PI, tiltDegreesRange.min, tiltDegreesRange.max);
-    });
-    tiltDegreesProperty.lazyLink((degrees) => {
-      suppressTiltLink = true;
-      model.tiltAngleProperty.value = (degrees * Math.PI) / 180;
-      suppressTiltLink = false;
-    });
+    const tiltDegreesProperty = createUnitProxy(model.tiltAngleProperty, 180 / Math.PI, tiltDegreesRange, "°");
 
     const tiltControl = createNumberControl(
       strings.tiltAngleStringProperty,

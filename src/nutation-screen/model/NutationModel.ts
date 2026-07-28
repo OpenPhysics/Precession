@@ -89,6 +89,15 @@ export class NutationModel implements TModel {
   public readonly aboveCriticalSpinProperty;
   /** Steady precession rate the top would need to hold its release tilt (rad/s). */
   public readonly steadyRateProperty;
+  /**
+   * Whether a top spun this fast would *sleep* — stand upright without toppling,
+   * which needs I₃²ω₃² > 4 I₁ M g l.
+   *
+   * This is a prediction about a release the user can actually perform: wind the
+   * tilt slider down to its minimum and the axis starts near vertical, so the
+   * readout can be checked rather than taken on trust.
+   */
+  public readonly sleepingStableProperty;
   /** Total mechanical energy about the pivot (J) — constant while friction is off. */
   public readonly energyProperty;
   /** p_φ, angular momentum about the vertical (kg·m²/s) — also constant without friction. */
@@ -122,6 +131,10 @@ export class NutationModel implements TModel {
 
     this.steadyRateProperty = new DerivedProperty([this.spinProperty, this.initialTiltProperty], (spin, tilt) =>
       slowPrecessionRate(this.getParameters(), spin, tilt),
+    );
+
+    this.sleepingStableProperty = new DerivedProperty([this.spinProperty], (spin) =>
+      isSleepingTopStable(this.getParameters(), spin),
     );
 
     this.energyProperty = new DerivedProperty(
@@ -165,11 +178,6 @@ export class NutationModel implements TModel {
       psi: this.psiProperty.value,
       spin: this.spinProperty.value,
     };
-  }
-
-  /** Whether a top spun this fast would stay upright if stood vertically. */
-  public isSleepingStable(): boolean {
-    return isSleepingTopStable(this.getParameters(), this.spinProperty.value);
   }
 
   public getTraceSamples() {
@@ -260,6 +268,7 @@ export class NutationModel implements TModel {
     this.criticalSpinProperty.dispose();
     this.aboveCriticalSpinProperty.dispose();
     this.steadyRateProperty.dispose();
+    this.sleepingStableProperty.dispose();
     this.energyProperty.dispose();
     this.verticalMomentumProperty.dispose();
   }
