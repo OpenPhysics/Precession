@@ -24,7 +24,8 @@ import { TUMBLE_GRAPH_HEIGHT, TUMBLE_GRAPH_WINDOW_S, TUMBLE_SPIN_RANGE } from ".
 import type { TorqueFreeModel } from "../model/TorqueFreeModel.js";
 
 const Y_AXIS_GUTTER = 50;
-const X_AXIS_GUTTER = 34;
+/** Room below the plot for the tick labels, the axis title, and the legend row. */
+const X_AXIS_GUTTER = 54;
 
 const AXIS_FONT = new PhetFont({ size: 11 });
 const LEGEND_FONT = new PhetFont({ size: 10 });
@@ -151,7 +152,7 @@ export class OmegaGraphNode extends Node {
         font: AXIS_FONT,
         fill: RigidBodyPrecessionColors.textColorProperty,
         centerX: Y_AXIS_GUTTER + width / 2,
-        top: TUMBLE_GRAPH_HEIGHT + 16,
+        top: TUMBLE_GRAPH_HEIGHT + 18,
       }),
     );
 
@@ -164,8 +165,9 @@ export class OmegaGraphNode extends Node {
           legendEntry(RigidBodyPrecessionColors.torqueColorProperty, "ω₂ (intermediate)"),
           legendEntry(RigidBodyPrecessionColors.weightColorProperty, "ω₃ (min I)"),
         ],
-        right: Y_AXIS_GUTTER + width,
-        top: TUMBLE_GRAPH_HEIGHT + 15,
+        // Its own row under the axis title: three entries do not fit beside it.
+        centerX: Y_AXIS_GUTTER + width / 2,
+        top: TUMBLE_GRAPH_HEIGHT + 37,
       }),
     );
 

@@ -7,7 +7,7 @@
 
 import { DerivedProperty, NumberProperty, type TReadOnlyProperty } from "scenerystack/axon";
 import { clamp, Dimension2, Range, toFixed } from "scenerystack/dot";
-import { HBox, Line, type Node, Text, VBox } from "scenerystack/scenery";
+import { HBox, Line, type Node, RichText, Text, VBox } from "scenerystack/scenery";
 import { NumberControl, PhetFont } from "scenerystack/scenery-phet";
 import { Checkbox } from "scenerystack/sun";
 import { FLAT_RECTANGULAR_BUTTON_OPTIONS } from "../../common/SimButtonOptions.js";
@@ -189,10 +189,12 @@ export class SteadyPrecessionControlPanel extends SimPanel {
       fill: RigidBodyPrecessionColors.accentColorProperty,
     });
 
-    const formulaHint = new Text(strings.formulaHintStringProperty, {
+    // RichText, not Text: a long sentence given only a maxWidth is scaled down to
+    // fit on one line, which at this size is unreadable. lineWrap wraps it instead.
+    const formulaHint = new RichText(strings.formulaHintStringProperty, {
       font: new PhetFont({ size: 11 }),
       fill: RigidBodyPrecessionColors.textColorProperty,
-      maxWidth: STEADY_PRECESSION_PANEL_WIDTH - 40,
+      lineWrap: STEADY_PRECESSION_PANEL_WIDTH - 40,
       opacity: 0.85,
     });
 
@@ -203,10 +205,10 @@ export class SteadyPrecessionControlPanel extends SimPanel {
       Number.isFinite(ratio) ? `1 : ${toFixed(1 / Math.max(ratio, 1e-9), 0)}` : "—",
     );
 
-    const validityWarning = new Text(strings.validityWarningStringProperty, {
+    const validityWarning = new RichText(strings.validityWarningStringProperty, {
       font: new PhetFont({ size: 11 }),
       fill: RigidBodyPrecessionColors.warningColorProperty,
-      maxWidth: STEADY_PRECESSION_PANEL_WIDTH - 40,
+      lineWrap: STEADY_PRECESSION_PANEL_WIDTH - 40,
     });
     model.idealizationValidProperty.link((valid) => {
       validityWarning.visible = !valid;

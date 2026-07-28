@@ -28,7 +28,8 @@ import type { NutationModel } from "../model/NutationModel.js";
 
 const CHART_HEIGHT = NUTATION_GRAPH_HEIGHT;
 const Y_AXIS_GUTTER = 56;
-const X_AXIS_GUTTER = 34;
+/** Room below the plot for the tick labels, the axis title, and the legend row. */
+const X_AXIS_GUTTER = 54;
 
 const AXIS_FONT = new PhetFont({ size: 11 });
 const LEGEND_FONT = new PhetFont({ size: 10 });
@@ -204,9 +205,9 @@ export class NutationAngleGraphNode extends Node {
             ],
           }),
         ],
-        // On the axis-title row, clear of the x tick labels directly under the chart.
-        right: Y_AXIS_GUTTER + width,
-        top: CHART_HEIGHT + 16,
+        // Its own row under the axis title, clear of the last x tick label.
+        centerX: Y_AXIS_GUTTER + width / 2,
+        top: CHART_HEIGHT + 37,
       }),
     );
 

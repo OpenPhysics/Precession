@@ -8,7 +8,7 @@
 
 import { DerivedProperty, type NumberProperty, type TReadOnlyProperty } from "scenerystack/axon";
 import { Dimension2, Range, toFixed } from "scenerystack/dot";
-import { HBox, Line, type Node, Text, VBox } from "scenerystack/scenery";
+import { HBox, Line, type Node, RichText, Text, VBox } from "scenerystack/scenery";
 import { NumberControl, PhetFont } from "scenerystack/scenery-phet";
 import { Checkbox, ComboBox, type ComboBoxItem } from "scenerystack/sun";
 import { LIGHT_SURFACE_TEXT_FILL, SIM_COMBO_BOX_OPTIONS } from "../../common/SimButtonOptions.js";
@@ -133,17 +133,19 @@ export class TorqueFreeControlPanel extends SimPanel {
       rate > 0 ? `${toFixed(rate, 2)} /s` : "—",
     );
 
-    const explanation = new Text(strings.stabilityRuleStringProperty, {
+    // RichText, not Text: a long sentence given only a maxWidth is scaled down to fit
+    // on one line, which at this size is unreadable. lineWrap wraps it instead.
+    const explanation = new RichText(strings.stabilityRuleStringProperty, {
       font: NOTE_FONT,
       fill: RigidBodyPrecessionColors.textColorProperty,
-      maxWidth: TORQUE_FREE_PANEL_WIDTH - 40,
+      lineWrap: TORQUE_FREE_PANEL_WIDTH - 40,
       opacity: 0.85,
     });
 
-    const conservedNote = new Text(strings.conservedNoteStringProperty, {
+    const conservedNote = new RichText(strings.conservedNoteStringProperty, {
       font: new PhetFont({ size: 10 }),
       fill: RigidBodyPrecessionColors.textColorProperty,
-      maxWidth: TORQUE_FREE_PANEL_WIDTH - 40,
+      lineWrap: TORQUE_FREE_PANEL_WIDTH - 40,
       opacity: 0.7,
     });
 

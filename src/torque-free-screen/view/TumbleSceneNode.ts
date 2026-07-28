@@ -17,9 +17,9 @@
  */
 
 import { Multilink } from "scenerystack/axon";
-import { Bounds2, Vector2, Vector3 } from "scenerystack/dot";
+import { Bounds2, toFixed, Vector2, Vector3 } from "scenerystack/dot";
 import { Shape } from "scenerystack/kite";
-import { Node, Path, Text } from "scenerystack/scenery";
+import { HBox, Node, Path, Rectangle, Text, VBox } from "scenerystack/scenery";
 import { ArrowNode, PhetFont } from "scenerystack/scenery-phet";
 import { type Camera3D, createCamera, project } from "../../common/view/Camera3D.js";
 import { type BoxGeometry, TumblingBoxNode } from "../../common/view/TumblingBoxNode.js";
@@ -27,10 +27,10 @@ import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import { TUMBLE_BOX_SIZE_M, TUMBLE_SPIN_RANGE } from "../../RigidBodyPrecessionConstants.js";
 import type { TorqueFreeModel } from "../model/TorqueFreeModel.js";
 
-export const TUMBLE_SCENE_WIDTH = 400;
-export const TUMBLE_SCENE_HEIGHT = 300;
+export const TUMBLE_SCENE_WIDTH = 600;
+export const TUMBLE_SCENE_HEIGHT = 290;
 
-const CAMERA: Camera3D = createCamera(new Vector2(TUMBLE_SCENE_WIDTH / 2, TUMBLE_SCENE_HEIGHT / 2 + 6), 300, 20);
+const CAMERA: Camera3D = createCamera(new Vector2(TUMBLE_SCENE_WIDTH / 2 - 40, TUMBLE_SCENE_HEIGHT / 2 + 4), 300, 20);
 
 const BOX_GEOMETRY: BoxGeometry = {
   size: new Vector3(TUMBLE_BOX_SIZE_M.x, TUMBLE_BOX_SIZE_M.y, TUMBLE_BOX_SIZE_M.z),
@@ -43,7 +43,58 @@ const OMEGA_SCALE_M = 0.42 / TUMBLE_SPIN_RANGE.max;
 const TRAIL_SAMPLES = 190;
 
 const LABEL_FONT = new PhetFont({ size: 13, weight: "bold" });
+const CARD_FONT = new PhetFont({ size: 10 });
 const ARROW = { headHeight: 11, headWidth: 10, tailWidth: 3 } as const;
+
+/**
+ * The three principal moments, in order, colored to match the faces they belong to.
+ *
+ * "Intermediate axis" is meaningless until you can see that there *is* an ordering,
+ * and which of the block's three visibly different faces sits in the middle of it.
+ * The numbers come straight from the model's inertia tensor, so they stay honest.
+ */
+function createInertiaCard(model: TorqueFreeModel): Node {
+  const rows: Node[] = [];
+  const entries: Array<[string, number, typeof RigidBodyPrecessionColors.textColorProperty]> = [
+    ["I₁", model.inertia.i1, RigidBodyPrecessionColors.wheelBodyColorProperty],
+    ["I₂", model.inertia.i2, RigidBodyPrecessionColors.torqueColorProperty],
+    ["I₃", model.inertia.i3, RigidBodyPrecessionColors.weightColorProperty],
+  ];
+
+  for (const [label, value, color] of entries) {
+    rows.push(
+      new HBox({
+        spacing: 5,
+        align: "center",
+        children: [
+          new Rectangle(0, 0, 10, 10, { fill: color, cornerRadius: 2 }),
+          new Text(label, { font: CARD_FONT, fill: RigidBodyPrecessionColors.textColorProperty }),
+          new Text(toFixed(value, 4), { font: CARD_FONT, fill: RigidBodyPrecessionColors.textColorProperty }),
+        ],
+      }),
+    );
+  }
+
+  const heading = new Text("I₁ > I₂ > I₃  (kg·m²)", {
+    font: CARD_FONT,
+    fill: RigidBodyPrecessionColors.accentColorProperty,
+  });
+
+  const content = new VBox({ spacing: 3, align: "left", children: [heading, ...rows] });
+  const card = new Rectangle(0, 0, content.width + 16, content.height + 14, {
+    fill: RigidBodyPrecessionColors.sceneInsetCardColorProperty,
+    stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
+    lineWidth: 1,
+    cornerRadius: 6,
+  });
+  content.center = card.center;
+
+  return new Node({
+    children: [card, content],
+    right: TUMBLE_SCENE_WIDTH - 4,
+    top: 4,
+  });
+}
 
 export class TumbleSceneNode extends Node {
   private trail: Vector3[] = [];
@@ -91,7 +142,16 @@ export class TumbleSceneNode extends Node {
       fill: RigidBodyPrecessionColors.precessionColorProperty,
     });
 
-    this.children = [referencePlane, omegaTrail, box, momentumArrow, omegaArrow, momentumLabel, omegaLabel];
+    this.children = [
+      referencePlane,
+      omegaTrail,
+      box,
+      momentumArrow,
+      omegaArrow,
+      momentumLabel,
+      omegaLabel,
+      createInertiaCard(model),
+    ];
 
     const update = (): void => {
       box.update(model.orientationProperty.value);
@@ -173,6 +233,7 @@ export class TumbleSceneNode extends Node {
         RigidBodyPrecessionColors.torqueColorProperty,
         RigidBodyPrecessionColors.weightColorProperty,
         RigidBodyPrecessionColors.gyroscopeColorProperty,
+        RigidBodyPrecessionColors.wheelMarkingColorProperty,
       ],
       () => {
         box.setPalette(this.palette());
@@ -189,6 +250,7 @@ export class TumbleSceneNode extends Node {
       faceY: RigidBodyPrecessionColors.torqueColorProperty.value,
       faceZ: RigidBodyPrecessionColors.weightColorProperty.value,
       edge: RigidBodyPrecessionColors.gyroscopeColorProperty.value,
+      mark: RigidBodyPrecessionColors.wheelMarkingColorProperty.value,
     };
   }
 }

@@ -34,6 +34,8 @@ export type BoxPalette = {
   readonly faceZ: Color;
   /** Edge color. */
   readonly edge: Color;
+  /** Color of the patch painted on the largest face, which makes flips readable. */
+  readonly mark: Color;
 };
 
 /**

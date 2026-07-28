@@ -26,7 +26,8 @@ import { PRECESSION_GRAPH_HEIGHT } from "../../RigidBodyPrecessionConstants.js";
 import type { SteadyPrecessionModel } from "../model/SteadyPrecessionModel.js";
 
 const CHART_HEIGHT = PRECESSION_GRAPH_HEIGHT;
-const Y_AXIS_GUTTER = 44;
+/** Room left of the plot for the y tick labels and, outside them, the axis title. */
+const Y_AXIS_GUTTER = 52;
 const X_AXIS_GUTTER = 34;
 const TIME_WINDOW_S = 10;
 
@@ -162,7 +163,8 @@ export class PrecessionAngleGraphNode extends Node {
       fill: RigidBodyPrecessionColors.textColorProperty,
       rotation: -Math.PI / 2,
       centerY: CHART_HEIGHT / 2,
-      right: Y_AXIS_GUTTER - 6,
+      // Outside the tick labels, which hang off the chart's left edge.
+      right: Y_AXIS_GUTTER - 26,
     });
     const xTitle = new Text("t (s)", {
       font: AXIS_FONT,

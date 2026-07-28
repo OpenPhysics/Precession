@@ -8,7 +8,7 @@
 
 import { DerivedProperty, NumberProperty, type TReadOnlyProperty } from "scenerystack/axon";
 import { clamp, Dimension2, Range, toFixed } from "scenerystack/dot";
-import { type Color, HBox, Line, type Node, Text, VBox } from "scenerystack/scenery";
+import { type Color, HBox, Line, type Node, RichText, Text, VBox } from "scenerystack/scenery";
 import { NumberControl, PhetFont } from "scenerystack/scenery-phet";
 import { Checkbox, ComboBox, RectangularPushButton } from "scenerystack/sun";
 import type { ReleaseMode } from "../../common/rigid-body/HeavySymmetricTopPhysics.js";
@@ -225,24 +225,26 @@ export class NutationControlPanel extends SimPanel {
       fill: RigidBodyPrecessionColors.accentColorProperty,
     });
 
-    const criticalWarning = new Text(strings.belowCriticalStringProperty, {
+    const criticalWarning = new RichText(strings.belowCriticalStringProperty, {
       font: new PhetFont({ size: 11 }),
       fill: RigidBodyPrecessionColors.warningColorProperty,
-      maxWidth: NUTATION_PANEL_WIDTH - 40,
+      lineWrap: NUTATION_PANEL_WIDTH - 40,
       visibleProperty: new DerivedProperty([model.aboveCriticalSpinProperty], (above) => !above),
     });
 
-    const conservedNote = new Text(strings.conservedNoteStringProperty, {
+    const conservedNote = new RichText(strings.conservedNoteStringProperty, {
       font: new PhetFont({ size: 10 }),
       fill: RigidBodyPrecessionColors.textColorProperty,
-      maxWidth: NUTATION_PANEL_WIDTH - 40,
+      lineWrap: NUTATION_PANEL_WIDTH - 40,
       opacity: 0.7,
     });
 
-    const insight = new Text(strings.insightStringProperty, {
+    // RichText, not Text: a long sentence given only a maxWidth is scaled down to fit
+    // on one line, which at this size is unreadable. lineWrap wraps it instead.
+    const insight = new RichText(strings.insightStringProperty, {
       font: new PhetFont({ size: 11 }),
       fill: RigidBodyPrecessionColors.textColorProperty,
-      maxWidth: NUTATION_PANEL_WIDTH - 40,
+      lineWrap: NUTATION_PANEL_WIDTH - 40,
       opacity: 0.85,
     });
 

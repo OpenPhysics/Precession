@@ -19,11 +19,17 @@ template's **canonical accessibility** wiring. For multi-screen sims, see
 | `src/i18n/StringManager.ts` | Singleton localized string accessor |
 | `src/steady-precession-screen/` | Screen 1 — idealized Ω = τ/(Iω) gyroscope |
 | `src/nutation-screen/` | Screen 2 — heavy symmetric top integrated from its full Lagrangian |
-| `src/torque-free-screen/` | Screen 3 — Euler/Poinsot tumbling (placeholder) |
+| `src/torque-free-screen/` | Screen 3 — Euler's equations, the tennis-racket flip |
 | `src/common/rigid-body/SteadyPrecessionPhysics.ts` | Screen 1's closed-form relations |
 | `src/common/rigid-body/HeavySymmetricTopPhysics.ts` | Screen 2's RK4 integrator, invariants, turning points |
+| `src/common/rigid-body/TorqueFreePhysics.ts` | Screen 3's Euler + quaternion RK4, invariants, stability |
 | `src/common/rigid-body/TopTipTrace.ts` | Ring buffer of (t, θ, φ) samples behind the tip path and θ(t) graph |
-| `src/common/view/TopProjection.ts` | Euler angles → oblique 2-D projection (axis, wheel rim, tilt circles) |
+| `src/common/view/Camera3D.ts` | **The** 3-D → 2-D map: projection, depth ordering, circle→ellipse, Lambert shading |
+| `src/common/view/CylinderShapes.ts` | Exact silhouette of a short cylinder at any tilt (wheel, collar, stand post) |
+| `src/common/view/SpinningWheelNode.ts` | The solid gyroscope wheel, shared by Screens 1 and 2 |
+| `src/common/view/TumblingBoxNode.ts` | Back-face-culled shaded block for Screen 3 |
+| `src/common/view/GyroStageNode.ts` | Floor grid, stand, and vertical reference shared by Screens 1 and 2 |
+| `src/common/view/SpinPhase.ts` | Rate-capped spin phase + blur factor, so fast wheels do not strobe |
 | `src/common/view/PlayAreaPanel.ts` | Titled panel wrapper shared by every screen's play area |
 | `src/common/SimPanel.ts` | Pre-themed `Panel` wrapper (uses `RigidBodyPrecessionColors` automatically) |
 | `src/common/SimButtonOptions.ts` | Flat button-appearance option bundles + light-control-surface combo-box options |
@@ -34,8 +40,22 @@ template's **canonical accessibility** wiring. For multi-screen sims, see
 
 ### Screen 1 — steady precession
 
-Closed form only: Ω = τ / (I ω), with the tilt held fixed. Deliberately idealized so the
-gyroscopic relation stands alone.
+Closed form only, deliberately idealized so the gyroscopic relation stands alone:
+
+- **Ω = M g l / (I₃ ω), independent of the tilt.** τ = Mgl sin θ and the horizontal part of
+  L is L sin θ, so dφ/dt = τ/(L sin θ) has the two sin θ factors cancel. The tilt slider
+  exists so that can be discovered rather than asserted.
+- **`spinAxisInertia` is the disk alone.** The counterweight rides *on* the symmetry axis,
+  so its distance from that axis is zero and it contributes nothing to I₃. Adding an
+  `m l²` term there (as a transverse-axis calculation would) makes the mass slider almost
+  inert and drags Ω down by an order of magnitude.
+- `gyroscopicRatio` = Ω/ω measures how hard the fast-top assumption is being pushed; past
+  `GYROSCOPIC_RATIO_LIMIT` the panel says so and points at Screen 2.
+
+Apparatus constants are a lecture-hall gyroscope (`DISK_*`), sized so Ω lands in the
+0.1–1 Hz band across the sliders. A toy-sized disk has so little angular momentum that
+Ω comes out at several turns per second — unwatchable, and outside the regime the formula
+assumes.
 
 ### Screen 2 — nutation (`HeavySymmetricTopPhysics.ts`)
 
@@ -62,6 +82,54 @@ demonstration gyroscope wheel. Note that ω_nut · Ω_slow = M g l / I₁ is fix
 apparatus alone: a hand-sized top nutates at several hertz no matter how it is spun, so
 the wheel is deliberately large and short-armed to bring both timescales on screen at
 once (≈1.6 Hz nutation, ≈3 s per precession revolution), with a slow-motion option.
+
+### Screen 3 — torque-free tumbling (`TorqueFreePhysics.ts`)
+
+Euler's equations for an asymmetric block, with the orientation carried by a quaternion,
+both integrated together with RK4 at a 1 ms substep. No gravity, no torque: the symmetry is
+broken by the inertia tensor instead. Key entry points:
+
+- `stepTorqueFree` — the integrator; renormalizes the quaternion each substep, since RK4
+  drifts it off the unit sphere and a non-unit quaternion shears the block
+- `boxInertia` — principal moments of a uniform block; with sides a < b < c along body
+  x, y, z the moments come out I₁ > I₂ > I₃, so body y is the intermediate axis
+- `isAxisStable` / `instabilityGrowthRate` — from linearizing about pure rotation: the
+  growth rate² ∝ (Iᵢ−Iⱼ)(Iᵢ−Iₖ)/(IⱼIₖ), negative only for the intermediate axis
+- `kineticEnergy`, `angularMomentumMagnitude` — invariants, exact; the test suite asserts
+  they hold to 8 decimals across a run containing several flips, and that L stays fixed in
+  *direction* too
+
+`TUMBLE_NUDGE_FRACTION` adds a deliberate transverse wobble at launch. Rotation exactly
+about the intermediate axis is a genuine solution, so with no nudge the block would spin
+forever and the instability would never appear; leaving it to floating-point noise would
+make the onset time an accident of the build.
+
+## Drawing in 3-D
+
+Every scene projects through `Camera3D`, which is a plain orthographic camera in the −y
+half-space raised by an elevation angle. Two of its outputs matter more than the projection
+itself:
+
+- **`depth`** — larger is farther. Scenes order their pieces with it instead of guessing,
+  which is what lets the rod pass behind the wheel on the far half of a precession cycle
+  and in front of it on the near half. That single cue is most of what turns an ambiguous
+  ellipse into an object.
+- **`shadeFactor`** — Lambert against a fixed key light, with an ambient floor. Colors in
+  `RigidBodyPrecessionColors` are *base* tones for this; pick mid-tones so there is
+  headroom to brighten and darken.
+
+Because the map is linear, a circle projects to an exact ellipse (`projectCircle`), and the
+convex hull of two offset rim circles gives a cylinder's silhouette in closed form
+(`CylinderShapes`). Neither is an approximation, at any tilt.
+
+### Spin has to be drawn slowly
+
+`SpinPhase` caps the *drawn* spin rate (`MAX_LEGIBLE_SPIN_RAD_S`) and reports how far past
+it the real one is. At 60 fps anything beyond a few turns per second strobes into looking
+frozen or backwards, which was the single worst legibility problem in the old renderer. The
+direction stays truthful; only the rate is compressed, as a stroboscope would. Past the cap
+the markings fade and rotational blur takes over, and Screen 1 captions the scene so the
+picture does not quietly misstate ω.
 
 ## Common components
 
@@ -130,6 +198,12 @@ JSON, exposed via `StringManager.getA11yStrings()`. When building a real sim, ma
 `currentDetailsContent` a live `DerivedProperty` over model state and add `accessibleName`s to
 every interactive node. Full convention and checklist: [Baton/ACCESSIBILITY.md](https://github.com/OpenPhysics/Baton/blob/main/ACCESSIBILITY.md).
 
+### Long explanatory text
+
+Panel notes and warnings must be `RichText` with `lineWrap`, not `Text` with `maxWidth`.
+A `Text` node given only a `maxWidth` *scales the glyphs down* to fit on one line, so a
+sentence at 11 px ends up illegible; `lineWrap` wraps it instead.
+
 ## Compliance carve-outs
 
 A clean fork of this template rarely needs compliance carve-outs — root `SimConstants.ts`,
@@ -146,7 +220,9 @@ Fleet-standard Vitest layout (keep when forking):
 | `vitest.config.ts` | `happy-dom` environment; `setupFiles: ["./tests/setup.ts"]`; `execArgv: ["--expose-gc"]` |
 | `tests/setup.ts` | Canvas / AudioContext mocks + `init({ name: "…" })` before SceneryStack imports |
 | `tests/TimeModel.test.ts` | Sample model unit tests — replace with real physics tests |
+| `tests/Camera3D.test.ts` | Depth ordering and exact circle→ellipse projection |
 | `tests/HeavySymmetricTopPhysics.test.ts` | Screen 2 integrator vs. analytic results (invariants, turning points, fast-top limits) |
+| `tests/TorqueFreePhysics.test.ts` | Screen 3 invariants across flips, axis stability, quaternion normalization |
 | `tests/NutationModel.test.ts` | Screen 2 model wiring: release, re-release, trace bounds, friction |
 | `tests/memory-leak.test.ts` | WeakRef + `forceGC` dispose regression (fleet pattern) |
 | `tests/fuzz/fuzz.spec.ts` | Optional Playwright fuzz smoke via joist `?fuzz` |
