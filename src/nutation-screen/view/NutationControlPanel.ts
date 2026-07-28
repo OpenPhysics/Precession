@@ -205,6 +205,16 @@ export class NutationControlPanel extends SimPanel {
         : RigidBodyPrecessionColors.warningColorProperty.value,
     );
 
+    // The two constants of the motion. With friction off they hold to many decimal
+    // places for as long as the sim runs, which is the most convincing evidence a
+    // student can get that the integrator is solving the real Lagrangian; switch
+    // friction on and watching them bleed away is the point of that checkbox.
+    const energyValueProperty = new DerivedProperty([model.energyProperty], (energy) => `${toFixed(energy, 3)} J`);
+    const momentumValueProperty = new DerivedProperty(
+      [model.verticalMomentumProperty],
+      (momentum) => `${toFixed(momentum, 3)} kg·m²/s`,
+    );
+
     const separator = new Line(0, 0, NUTATION_PANEL_WIDTH - 40, 0, {
       stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
       lineWidth: 1,
@@ -220,6 +230,13 @@ export class NutationControlPanel extends SimPanel {
       fill: RigidBodyPrecessionColors.warningColorProperty,
       maxWidth: NUTATION_PANEL_WIDTH - 40,
       visibleProperty: new DerivedProperty([model.aboveCriticalSpinProperty], (above) => !above),
+    });
+
+    const conservedNote = new Text(strings.conservedNoteStringProperty, {
+      font: new PhetFont({ size: 10 }),
+      fill: RigidBodyPrecessionColors.textColorProperty,
+      maxWidth: NUTATION_PANEL_WIDTH - 40,
+      opacity: 0.7,
     });
 
     const insight = new Text(strings.insightStringProperty, {
@@ -244,6 +261,9 @@ export class NutationControlPanel extends SimPanel {
         readoutRow("f_nut", nutationValueProperty, RigidBodyPrecessionColors.tipTraceColorProperty),
         readoutRow("Ω_mean", precessionValueProperty, RigidBodyPrecessionColors.precessionColorProperty),
         readoutRow("ω₃ min", criticalValueProperty, criticalColorProperty),
+        readoutRow("E", energyValueProperty, RigidBodyPrecessionColors.textColorProperty),
+        readoutRow("p_φ", momentumValueProperty, RigidBodyPrecessionColors.textColorProperty),
+        conservedNote,
         criticalWarning,
         insight,
       ],

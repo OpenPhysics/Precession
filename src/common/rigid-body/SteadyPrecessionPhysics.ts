@@ -48,6 +48,8 @@ export type SteadyPrecessionVectors = {
   readonly totalMass: number;
   /** Moment of inertia about the spin axis (kg·m²). */
   readonly spinAxisInertia: number;
+  /** Ω / ω — small while the fast-top idealization holds. */
+  readonly gyroscopicRatio: number;
 };
 
 const MIN_SPIN_RATE = 1e-3;
@@ -71,9 +73,15 @@ export function centerOfMassDistance(parameters: SteadyPrecessionParameters): nu
   );
 }
 
+/**
+ * Moment of inertia about the *spin* axis. The arm mass rides on the axle, i.e. on
+ * the symmetry axis itself, so its distance from that axis is zero and it adds
+ * nothing here — sliding it outward changes the torque, not the spin inertia. (It
+ * does add M l² about the transverse axis, but that inertia plays no part in
+ * steady precession.)
+ */
 export function spinAxisInertia(parameters: SteadyPrecessionParameters): number {
-  const armInertia = parameters.armMass * parameters.pivotToMassDistance * parameters.pivotToMassDistance;
-  return parameters.diskInertia + armInertia;
+  return parameters.diskInertia;
 }
 
 export function torqueMagnitude(parameters: SteadyPrecessionParameters): number {
@@ -89,17 +97,44 @@ export function angularMomentumMagnitude(parameters: SteadyPrecessionParameters)
 }
 
 /**
- * Steady-state precession rate from τ = Ω × L → Ω = τ / (I ω) for a symmetric top.
+ * Steady precession rate dφ/dt.
+ *
+ * τ = dL/dt with L along the axle gives τ = Ω × L. Both τ and the swing of L are
+ * horizontal, and the horizontal part of L has magnitude L sin θ, so
+ *
+ *   Ω = τ / (L sin θ) = (M g l sin θ) / (I₃ ω sin θ) = M g l / (I₃ ω).
+ *
+ * The two sin θ factors cancel: **the precession rate does not depend on the tilt**.
+ * A gyroscope leaning far over precesses at exactly the rate it does when nearly
+ * upright — one of the least intuitive results in rigid-body mechanics, and the
+ * reason this screen offers a tilt control.
  */
 export function predictedPrecessionRate(parameters: SteadyPrecessionParameters): number {
-  const torque = torqueMagnitude(parameters);
+  const leverArm = centerOfMassDistance(parameters);
   const inertia = spinAxisInertia(parameters);
   const spinRate = Math.abs(parameters.spinRate);
-  if (torque === 0 || spinRate < MIN_SPIN_RATE || inertia <= 0) {
+  if (leverArm < MIN_CENTER_OF_MASS_DISTANCE || spinRate < MIN_SPIN_RATE || inertia <= 0) {
     return 0;
   }
-  return torque / (inertia * spinRate);
+  return (totalMass(parameters) * parameters.gravity * leverArm) / (inertia * spinRate);
 }
+
+/**
+ * Ω / ω — how badly the "fast top" assumption is being stretched. The steady formula
+ * drops the transverse angular momentum the precession itself carries, which is only
+ * legitimate while this stays small. Past a few percent the real top nutates instead,
+ * which is what Screen 2 integrates.
+ */
+export function gyroscopicRatio(parameters: SteadyPrecessionParameters): number {
+  const spinRate = Math.abs(parameters.spinRate);
+  if (spinRate < MIN_SPIN_RATE) {
+    return Number.POSITIVE_INFINITY;
+  }
+  return predictedPrecessionRate(parameters) / spinRate;
+}
+
+/** Above this Ω/ω the readouts warn that the idealization has broken down. */
+export const GYROSCOPIC_RATIO_LIMIT = 0.08;
 
 export function steadyPrecessionVectors(parameters: SteadyPrecessionParameters): SteadyPrecessionVectors {
   return {
@@ -109,6 +144,7 @@ export function steadyPrecessionVectors(parameters: SteadyPrecessionParameters):
     centerOfMassDistance: centerOfMassDistance(parameters),
     totalMass: totalMass(parameters),
     spinAxisInertia: spinAxisInertia(parameters),
+    gyroscopicRatio: gyroscopicRatio(parameters),
   };
 }
 

@@ -35,3 +35,14 @@ export function calculateTickSpacing(rangeLength: number): number {
 
   return Math.max(spacing, rangeLength / 20);
 }
+
+/**
+ * Decimal places that show a tick spacing without redundant zeros, so a 0.5-spaced
+ * axis reads "1.5" and a 2-spaced axis reads "4" rather than "4.00".
+ */
+export function tickDecimalsFor(spacing: number): number {
+  if (!Number.isFinite(spacing) || spacing <= 0) {
+    return 0;
+  }
+  return Math.max(0, Math.min(3, Math.ceil(-Math.log10(spacing))));
+}

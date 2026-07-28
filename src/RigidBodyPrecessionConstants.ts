@@ -18,27 +18,44 @@ export const PANEL_CORNER_RADIUS = 6;
 export const STEADY_PRECESSION_PANEL_WIDTH = 300;
 
 /** Height of the precession-angle graph. */
-export const PRECESSION_GRAPH_HEIGHT = 160;
+export const PRECESSION_GRAPH_HEIGHT = 118;
 
 /** Width of the control panel on the nutation screen. */
 export const NUTATION_PANEL_WIDTH = 300;
 
 /** Height of the nutation-angle graph. */
-export const NUTATION_GRAPH_HEIGHT = 130;
+export const NUTATION_GRAPH_HEIGHT = 100;
 
 // ── Physics defaults (SI units) ───────────────────────────────────────────────
 
 /** Gravitational acceleration (m/s²). */
 export const GRAVITY_MPS2 = 9.81;
 
-/** Mass of the spinning disk (kg). */
-export const DISK_MASS_KG = 0.5;
+// Screen 1's apparatus is the lecture-hall gyroscope: a heavy wheel on a horizontal
+// axle resting in a gimbal, with a sliding counterweight. Its size matters
+// pedagogically — a toy-sized disk spun at any believable rate has so little angular
+// momentum that Ω = Mgl/(I₃ω) comes out at several turns per second, which is both
+// unwatchable and outside the fast-top regime the formula assumes. This wheel
+// precesses in a few seconds while still keeping Ω/ω near 1/30.
 
-/** Disk moment of inertia about its spin axis (kg·m²). */
-export const DISK_INERTIA_KG_M2 = 0.002;
+/** Mass of the spinning wheel (kg). */
+export const DISK_MASS_KG = 3.0;
 
-/** Distance from pivot to disk center along the axle (m). */
-export const DISK_POSITION_FROM_PIVOT_M = 0.15;
+/** Rim radius of the spinning wheel (m). */
+export const DISK_RADIUS_M = 0.25;
+
+/** Half of the wheel's axial thickness (m) — drawn, and small enough to ignore in I₃. */
+export const DISK_HALF_THICKNESS_M = 0.03;
+
+/** Wheel moment of inertia about its spin axis, ½MR² for a solid disk (kg·m²). */
+export const DISK_INERTIA_KG_M2 = 0.5 * DISK_MASS_KG * DISK_RADIUS_M ** 2;
+
+/**
+ * Distance from pivot to wheel center along the axle (m). Comfortably larger than
+ * the wheel's radius, so the wheel hangs out on the rod instead of swallowing the
+ * pivot and colliding with the stand.
+ */
+export const DISK_POSITION_FROM_PIVOT_M = 0.3;
 
 /** Default tilt of the axle from vertical (rad) — 45°. */
 export const DEFAULT_TILT_ANGLE_RAD = Math.PI / 4;
@@ -49,14 +66,14 @@ export const SPIN_UP_TIME_CONSTANT_S = 1.5;
 /** Number of graph samples retained in the rolling buffer. */
 export const PRECESSION_GRAPH_CAPACITY = 600;
 
-/** Default target spin rate (rad/s) — about 30 rev/s. */
-export const DEFAULT_SPIN_RATE_RAD_S = 30 * 2 * Math.PI;
+/** Default target spin rate (rad/s) — 8 rev/s. */
+export const DEFAULT_SPIN_RATE_RAD_S = 8 * 2 * Math.PI;
 
-/** Default arm mass (kg). */
-export const DEFAULT_ARM_MASS_KG = 0.2;
+/** Default counterweight mass (kg). */
+export const DEFAULT_ARM_MASS_KG = 0.4;
 
 /** Default pivot-to-mass distance (m). */
-export const DEFAULT_PIVOT_TO_MASS_DISTANCE_M = 0.35;
+export const DEFAULT_PIVOT_TO_MASS_DISTANCE_M = 0.58;
 
 // ── Nutation screen: heavy symmetric top (SI units) ───────────────────────────
 //
@@ -110,11 +127,57 @@ export const NUTATION_SAMPLE_INTERVAL_S = 1 / 60;
 /** Visible time window of the θ(t) graph (s). */
 export const NUTATION_GRAPH_WINDOW_S = 8;
 
+// ── Torque-free screen: tumbling block (SI units) ─────────────────────────────
+//
+// A flat block with three clearly different sides, so its three principal moments
+// are clearly different too. With sides a < b < c along the body's x, y, z axes the
+// moments come out I₁ > I₂ > I₃: body x (perpendicular to the largest face) has the
+// largest moment, body z (the long axis) the smallest, and body y is the intermediate
+// axis that refuses to hold still.
+
+/** Mass of the tumbling block (kg). */
+export const TUMBLE_BOX_MASS_KG = 0.5;
+
+/** Full side lengths of the block along its body x, y, z axes (m). */
+export const TUMBLE_BOX_SIZE_M = { x: 0.1, y: 0.22, z: 0.34 } as const;
+
+/** Default launch spin rate (rad/s) — about one turn per second. */
+export const DEFAULT_TUMBLE_SPIN_RAD_S = 6;
+
+/**
+ * Transverse wobble added at launch, as a fraction of the spin rate. Rotation exactly
+ * about the intermediate axis is a genuine solution, so without a nudge the block
+ * would spin forever and the instability would never appear; a real throw always
+ * contains one, and making it explicit beats leaving it to floating-point noise.
+ */
+export const TUMBLE_NUDGE_FRACTION = 0.04;
+
+/** ω-history samples retained (10 s at 60 Hz). */
+export const TUMBLE_HISTORY_CAPACITY = 600;
+
+/** Sample interval for the ω history (s). */
+export const TUMBLE_SAMPLE_INTERVAL_S = 1 / 60;
+
+/** Visible time window of the ω(t) graph (s). */
+export const TUMBLE_GRAPH_WINDOW_S = 10;
+
+/** Height of the ω-component graph. */
+export const TUMBLE_GRAPH_HEIGHT = 118;
+
+/** Width of the control panel on the torque-free screen. */
+export const TORQUE_FREE_PANEL_WIDTH = 300;
+
 // ── Ranges ────────────────────────────────────────────────────────────────────
 
-export const SPIN_RATE_RANGE = { min: 5 * 2 * Math.PI, max: 80 * 2 * Math.PI };
-export const ARM_MASS_RANGE = { min: 0.05, max: 0.5 };
-export const PIVOT_DISTANCE_RANGE = { min: 0.15, max: 0.5 };
+export const SPIN_RATE_RANGE = { min: 3 * 2 * Math.PI, max: 20 * 2 * Math.PI };
+export const ARM_MASS_RANGE = { min: 0.1, max: 1.0 };
+export const PIVOT_DISTANCE_RANGE = { min: 0.45, max: 0.78 };
+
+/**
+ * Axle tilt range for Screen 1 (rad) — 25° to 75°. Steady precession is
+ * tilt-independent, so this control exists to let that be discovered.
+ */
+export const TILT_ANGLE_RANGE = { min: (25 * Math.PI) / 180, max: (75 * Math.PI) / 180 };
 
 /** Spin range for the nutation screen (rad/s); spans the critical spin at 45°. */
 export const NUTATION_SPIN_RANGE = { min: 2, max: 20 };
@@ -127,6 +190,9 @@ export const NUTATION_MAX_TILT_RAD = Math.PI / 2;
 
 /** Release-tilt range for the nutation screen (rad) — 15° to 80°. */
 export const NUTATION_TILT_RANGE = { min: (15 * Math.PI) / 180, max: (80 * Math.PI) / 180 };
+
+/** Launch spin range for the torque-free screen (rad/s). */
+export const TUMBLE_SPIN_RANGE = { min: 2, max: 12 };
 
 RigidBodyPrecessionNamespace.register("RigidBodyPrecessionConstants", {
   SCREEN_VIEW_MARGIN,

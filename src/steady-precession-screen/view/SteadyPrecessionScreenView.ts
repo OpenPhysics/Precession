@@ -51,33 +51,15 @@ export class SteadyPrecessionScreenView extends ScreenView {
     const vectorPanel = new PlayAreaPanel(strings.vectorDiagramTitleStringProperty, new VectorDiagramNode(model));
 
     const topRow = new HBox({
-      spacing: 10,
+      spacing: 8,
       align: "top",
       children: [gyroscopePanel, vectorPanel],
     });
 
-    // Fit top row into available width
-    if (topRow.width > playAreaWidth && topRow.width > 0) {
-      topRow.setScaleMagnitude(playAreaWidth / topRow.width);
-    }
-    topRow.left = SCREEN_VIEW_MARGIN;
-    topRow.top = SCREEN_VIEW_MARGIN;
-
     const graphPanel = new PlayAreaPanel(
       strings.graphTitleStringProperty,
-      new PrecessionAngleGraphNode(model, Math.max(300, playAreaWidth - 40)),
+      new PrecessionAngleGraphNode(model, Math.max(300, topRow.width - 66)),
     );
-    graphPanel.left = SCREEN_VIEW_MARGIN;
-    graphPanel.top = topRow.bounds.bottom + 6;
-
-    // Shrink graph if it would overlap bottom chrome
-    const graphOverflow = graphPanel.bounds.bottom - playAreaBottom;
-    if (graphOverflow > 0 && graphPanel.height > 0) {
-      const shrink = (graphPanel.height - graphOverflow) / graphPanel.height;
-      graphPanel.setScaleMagnitude(Math.max(0.65, shrink));
-      graphPanel.left = SCREEN_VIEW_MARGIN;
-      graphPanel.top = topRow.bounds.bottom + 6;
-    }
 
     const timeControl = new TimeControlNode(model.timer.isPlayingProperty, {
       ...TIME_CONTROL_SPEED_RADIO_OPTIONS,
@@ -103,10 +85,24 @@ export class SteadyPrecessionScreenView extends ScreenView {
     });
 
     const playColumn = new VBox({
-      spacing: 0,
+      spacing: 6,
       align: "left",
       children: [topRow, graphPanel],
     });
+
+    // Scale the whole play column as one piece, so the scene and its graph keep the
+    // same width and the panels stay flush no matter how tight the layout gets.
+    const availableHeight = playAreaBottom - SCREEN_VIEW_MARGIN;
+    const scale = Math.min(
+      1,
+      playColumn.width > 0 ? playAreaWidth / playColumn.width : 1,
+      playColumn.height > 0 ? availableHeight / playColumn.height : 1,
+    );
+    if (scale < 1) {
+      playColumn.setScaleMagnitude(scale);
+    }
+    playColumn.left = SCREEN_VIEW_MARGIN;
+    playColumn.top = SCREEN_VIEW_MARGIN;
 
     this.addChild(playColumn);
     this.addChild(controlPanel);

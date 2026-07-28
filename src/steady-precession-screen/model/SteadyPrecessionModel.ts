@@ -9,6 +9,8 @@ import { toFixed } from "scenerystack/dot";
 import type { TModel } from "scenerystack/joist";
 import { PrecessionDataSeries } from "../../common/rigid-body/PrecessionDataSeries.js";
 import {
+  GYROSCOPIC_RATIO_LIMIT,
+  gyroscopicRatio,
   predictedPrecessionRate,
   type SteadyPrecessionParameters,
   steadyPrecessionVectors,
@@ -38,6 +40,8 @@ export class SteadyPrecessionModel implements TModel {
     units: "m",
   });
   public readonly pivotAtCenterOfMassProperty = new BooleanProperty(false);
+  /** Tilt of the axle from the vertical (rad). Held fixed by the idealization. */
+  public readonly tiltAngleProperty = new NumberProperty(DEFAULT_TILT_ANGLE_RAD, { units: "radians" });
 
   public readonly precessionAngleProperty = new NumberProperty(0);
   public readonly spinAngleProperty = new NumberProperty(0);
@@ -48,6 +52,10 @@ export class SteadyPrecessionModel implements TModel {
   public readonly measuredPrecessionRateProperty;
   public readonly torqueReadoutProperty;
   public readonly precessionComparisonProperty;
+  /** Ω/ω — how far the fast-top idealization is being pushed. */
+  public readonly gyroscopicRatioProperty;
+  /** True while Ω ≪ ω holds, i.e. while this screen's closed form is trustworthy. */
+  public readonly idealizationValidProperty;
 
   private readonly dataSeries = new PrecessionDataSeries(PRECESSION_GRAPH_CAPACITY);
   private sampleAccumulator = 0;
@@ -60,8 +68,18 @@ export class SteadyPrecessionModel implements TModel {
         this.pivotToMassDistanceProperty,
         this.pivotAtCenterOfMassProperty,
         this.actualSpinRateProperty,
+        this.tiltAngleProperty,
       ],
       () => predictedPrecessionRate(this.getParameters()),
+    );
+
+    this.gyroscopicRatioProperty = new DerivedProperty([this.predictedPrecessionRateProperty], () =>
+      gyroscopicRatio(this.getParameters()),
+    );
+
+    this.idealizationValidProperty = new DerivedProperty(
+      [this.gyroscopicRatioProperty],
+      (ratio) => ratio <= GYROSCOPIC_RATIO_LIMIT,
     );
 
     this.measuredPrecessionRateProperty = new DerivedProperty([this.precessionAngleProperty], () =>
@@ -74,6 +92,7 @@ export class SteadyPrecessionModel implements TModel {
         this.pivotToMassDistanceProperty,
         this.pivotAtCenterOfMassProperty,
         this.actualSpinRateProperty,
+        this.tiltAngleProperty,
       ],
       () => {
         const tau = torqueMagnitude(this.getParameters());
@@ -98,7 +117,7 @@ export class SteadyPrecessionModel implements TModel {
       armMass: this.armMassProperty.value,
       pivotToMassDistance: this.pivotToMassDistanceProperty.value,
       pivotAtCenterOfMass: this.pivotAtCenterOfMassProperty.value,
-      tiltAngle: DEFAULT_TILT_ANGLE_RAD,
+      tiltAngle: this.tiltAngleProperty.value,
       diskMass: DISK_MASS_KG,
       diskInertia: DISK_INERTIA_KG_M2,
       diskPositionFromPivot: DISK_POSITION_FROM_PIVOT_M,
@@ -144,6 +163,7 @@ export class SteadyPrecessionModel implements TModel {
     this.armMassProperty.reset();
     this.pivotToMassDistanceProperty.reset();
     this.pivotAtCenterOfMassProperty.reset();
+    this.tiltAngleProperty.reset();
     this.precessionAngleProperty.reset();
     this.spinAngleProperty.reset();
     this.actualSpinRateProperty.reset();
@@ -157,6 +177,7 @@ export class SteadyPrecessionModel implements TModel {
     this.armMassProperty.dispose();
     this.pivotToMassDistanceProperty.dispose();
     this.pivotAtCenterOfMassProperty.dispose();
+    this.tiltAngleProperty.dispose();
     this.precessionAngleProperty.dispose();
     this.spinAngleProperty.dispose();
     this.actualSpinRateProperty.dispose();
@@ -164,5 +185,7 @@ export class SteadyPrecessionModel implements TModel {
     this.measuredPrecessionRateProperty.dispose();
     this.torqueReadoutProperty.dispose();
     this.precessionComparisonProperty.dispose();
+    this.gyroscopicRatioProperty.dispose();
+    this.idealizationValidProperty.dispose();
   }
 }

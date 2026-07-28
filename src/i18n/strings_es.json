@@ -7,19 +7,24 @@
   },
   "steadyPrecession": {
     "spinRate": "Velocidad de giro (Hz)",
-    "armMass": "Masa del brazo (kg)",
-    "pivotDistance": "Pivote a masa (m)",
+    "armMass": "Contrapeso (kg)",
+    "pivotDistance": "Pivote a la masa (m)",
+    "tiltAngle": "Inclinación del eje θ (°)",
     "pivotAtCom": "Pivote en el centro de masa",
     "gyroscopeTitle": "Giroscopio",
     "vectorDiagramTitle": "¿Por qué de lado, no hacia abajo?",
-    "vectorInsight": "La gravedad tira hacia abajo — pero τ = dL/dt es ⊥ L.",
+    "vectorInsight": "La gravedad tira hacia abajo — pero τ = dL/dt es ⊥ L, así que L gira de lado en vez de caer.",
     "noTorqueMessage": "Pivote en el CM: τ = 0, sin precesión.",
     "graphTitle": "Ángulo de precesión φ vs. tiempo",
     "readoutsTitle": "Tasas",
-    "formulaHint": "Ω = τ / (I ω)  —  más giro → precesión más lenta"
+    "formulaHint": "Ω = M g l / (I₃ ω) — más giro, precesión más lenta. La inclinación se cancela.",
+    "validityWarning": "Ω ya no es pequeño frente a ω, así que esta fórmula cerrada solo es aproximada aquí. Una peonza real nutaría — vea la pantalla Nutación.",
+    "tiltHint": "Cambie la inclinación: Ω no varía.",
+    "spinSlowed": "Rueda dibujada a cámara lenta — vea el valor de giro"
   },
   "nutation": {
     "sceneTitle": "Trompo pesado — trayectoria de la punta del eje",
+    "tipPathTitle": "Punta del eje, vista desde arriba",
     "graphTitle": "Inclinación θ vs. tiempo",
     "spinRate": "Giro propio ω₃ (Hz)",
     "initialTilt": "Inclinación de suelta θ₀ (°)",
@@ -31,11 +36,24 @@
     "friction": "Fricción (el trompo se frena)",
     "releaseAgain": "Soltar de nuevo",
     "readoutsTitle": "Mediciones",
+    "conservedNote": "E y p_φ se mantienen constantes mientras la fricción está apagada.",
     "belowCritical": "El giro está por debajo del valor crítico — no existe precesión estable en esta inclinación, así que el trompo debe nutar.",
     "insight": "Un trompo real se suelta, no se lanza con la tasa exacta: el eje cae, gana precesión y vuelve a subir."
   },
   "torqueFree": {
-    "placeholder": "Volteo sin par — próximamente."
+    "sceneTitle": "Bloque volteando — sin par alguno",
+    "graphTitle": "Componentes de ω en el marco del cuerpo",
+    "spinAxis": "Girar en torno a",
+    "axisMax": "Eje de inercia máxima — estable",
+    "axisIntermediate": "Eje intermedio — voltea",
+    "axisMin": "Eje de inercia mínima — estable",
+    "spinRate": "Giro inicial (rad/s)",
+    "nudge": "Añadir una pequeña oscilación al lanzar",
+    "readoutsTitle": "Mediciones",
+    "stable": "estable",
+    "unstable": "inestable",
+    "stabilityRule": "Un cuerpo libre gira de forma estable en torno a su eje de inercia máxima o mínima. En torno al intermedio, la menor oscilación crece hasta que el cuerpo voltea — y sigue volteando.",
+    "conservedNote": "T y |L| son exactamente constantes, volteos incluidos. Nada empuja al bloque."
   },
   "a11y": {
     "steadyPrecession": {
@@ -47,8 +65,9 @@
       "currentDetailsPattern": "Precesión prevista {{predictedHz}} hertz. Medida {{measuredHz}} hertz.",
       "controls": {
         "spinRate": "Velocidad de giro",
-        "armMass": "Masa del brazo",
-        "pivotDistance": "Distancia pivote a masa",
+        "armMass": "Masa del contrapeso",
+        "pivotDistance": "Distancia del pivote al contrapeso",
+        "tiltAngle": "Inclinación del eje respecto a la vertical",
         "pivotAtCom": "Pivote en el centro de masa"
       }
     },
@@ -69,11 +88,16 @@
     },
     "torqueFree": {
       "screenSummary": {
-        "playArea": "Próximamente: volteo sin par.",
-        "controlArea": "Controles próximamente.",
-        "interactionHint": "En construcción."
+        "playArea": "El área de juego muestra un bloque rectangular volteando sin par, una flecha fija para el momento angular, una flecha móvil para la velocidad angular con su rastro, y una gráfica de las tres componentes de giro frente al tiempo.",
+        "controlArea": "El área de control permite elegir el eje principal de giro, fijar la velocidad de giro inicial y activar o desactivar la oscilación de lanzamiento. Las lecturas dan la estabilidad del eje elegido, la tasa de crecimiento de una perturbación y las dos cantidades conservadas.",
+        "interactionHint": "Gire el bloque en torno a su eje de inercia máxima y vea que se mantiene estable, luego cambie al eje intermedio y vea cómo voltea."
       },
-      "currentDetails": "Marcador de posición sin par."
+      "currentDetailsPattern": "Las componentes de giro son {{omega1}}, {{omega2}} y {{omega3}} radianes por segundo en torno a los ejes de inercia máxima, intermedia y mínima.",
+      "controls": {
+        "spinAxis": "Eje de giro del bloque",
+        "spinRate": "Velocidad de giro inicial",
+        "nudge": "Oscilación de lanzamiento"
+      }
     }
   },
   "preferences": {

@@ -7,19 +7,24 @@
   },
   "steadyPrecession": {
     "spinRate": "Vitesse de rotation (Hz)",
-    "armMass": "Masse du bras (kg)",
-    "pivotDistance": "Pivot à masse (m)",
+    "armMass": "Contrepoids (kg)",
+    "pivotDistance": "Pivot au poids (m)",
+    "tiltAngle": "Inclinaison de l'axe θ (°)",
     "pivotAtCom": "Pivot au centre de masse",
     "gyroscopeTitle": "Gyroscope",
     "vectorDiagramTitle": "Pourquoi de côté, pas vers le bas ?",
-    "vectorInsight": "La gravité tire vers le bas — mais τ = dL/dt est ⊥ L.",
+    "vectorInsight": "La gravité tire vers le bas — mais τ = dL/dt est ⊥ L, donc L pivote de côté au lieu de tomber.",
     "noTorqueMessage": "Pivot au CM : τ = 0, pas de précession.",
     "graphTitle": "Angle de précession φ vs. temps",
     "readoutsTitle": "Vitesses",
-    "formulaHint": "Ω = τ / (I ω)  —  plus de spin → précession plus lente"
+    "formulaHint": "Ω = M g l / (I₃ ω) — rotation plus rapide, précession plus lente. L'inclinaison s'annule.",
+    "validityWarning": "Ω n'est plus petit devant ω : cette formule fermée n'est qu'approximative ici. Une vraie toupie nuterait — voir l'écran Nutation.",
+    "tiltHint": "Changez l'inclinaison : Ω ne bouge pas.",
+    "spinSlowed": "Roue dessinée au ralenti — voir la valeur de rotation"
   },
   "nutation": {
     "sceneTitle": "Toupie pesante — trajectoire du bout de l'axe",
+    "tipPathTitle": "Pointe de l'axe, vue de dessus",
     "graphTitle": "Inclinaison θ vs. temps",
     "spinRate": "Rotation propre ω₃ (Hz)",
     "initialTilt": "Inclinaison au lâcher θ₀ (°)",
@@ -31,11 +36,24 @@
     "friction": "Frottement (la toupie ralentit)",
     "releaseAgain": "Relâcher",
     "readoutsTitle": "Mesures",
+    "conservedNote": "E et p_φ restent constants tant que le frottement est désactivé.",
     "belowCritical": "Rotation propre sous la valeur critique — aucune précession régulière n'existe à cette inclinaison, la toupie doit donc nuter.",
     "insight": "Une vraie toupie est lâchée, pas lancée à la bonne vitesse : l'axe descend, gagne de la précession, puis remonte."
   },
   "torqueFree": {
-    "placeholder": "Rotation libre — bientôt disponible."
+    "sceneTitle": "Bloc en culbute — aucun couple",
+    "graphTitle": "Composantes de ω dans le repère du corps",
+    "spinAxis": "Faire tourner autour de",
+    "axisMax": "Axe d'inertie maximale — stable",
+    "axisIntermediate": "Axe intermédiaire — bascule",
+    "axisMin": "Axe d'inertie minimale — stable",
+    "spinRate": "Rotation initiale (rad/s)",
+    "nudge": "Ajouter une petite oscillation au lancer",
+    "readoutsTitle": "Mesures",
+    "stable": "stable",
+    "unstable": "instable",
+    "stabilityRule": "Un corps libre tourne régulièrement autour de son axe d'inertie maximale ou minimale. Autour de l'axe intermédiaire, la moindre oscillation grandit jusqu'à faire basculer le corps — encore et encore.",
+    "conservedNote": "T et |L| restent exactement constants, basculements compris. Rien ne pousse le bloc."
   },
   "a11y": {
     "steadyPrecession": {
@@ -47,8 +65,9 @@
       "currentDetailsPattern": "Précession prédite {{predictedHz}} hertz. Mesurée {{measuredHz}} hertz.",
       "controls": {
         "spinRate": "Vitesse de rotation",
-        "armMass": "Masse du bras",
-        "pivotDistance": "Distance pivot à masse",
+        "armMass": "Masse du contrepoids",
+        "pivotDistance": "Distance du pivot au contrepoids",
+        "tiltAngle": "Inclinaison de l'axe par rapport à la verticale",
         "pivotAtCom": "Pivot au centre de masse"
       }
     },
@@ -69,11 +88,16 @@
     },
     "torqueFree": {
       "screenSummary": {
-        "playArea": "Bientôt : rotation libre.",
-        "controlArea": "Contrôles à venir.",
-        "interactionHint": "En construction."
+        "playArea": "La zone de jeu montre un bloc rectangulaire en culbute sans couple, une flèche fixe pour le moment cinétique, une flèche mobile pour la vitesse angulaire avec sa trace, et un graphique des trois composantes de rotation en fonction du temps.",
+        "controlArea": "La zone de commande permet de choisir l'axe principal de rotation, de régler la vitesse de rotation initiale et d'activer ou non l'oscillation de lancement. Les valeurs affichées donnent la stabilité de l'axe choisi, le taux de croissance d'une perturbation et les deux quantités conservées.",
+        "interactionHint": "Faites tourner le bloc autour de son axe d'inertie maximale et observez sa stabilité, puis passez à l'axe intermédiaire et observez les basculements."
       },
-      "currentDetails": "Écran rotation libre provisoire."
+      "currentDetailsPattern": "Les composantes de rotation sont {{omega1}}, {{omega2}} et {{omega3}} radians par seconde autour des axes d'inertie maximale, intermédiaire et minimale.",
+      "controls": {
+        "spinAxis": "Axe de rotation du bloc",
+        "spinRate": "Vitesse de rotation initiale",
+        "nudge": "Oscillation de lancement"
+      }
     }
   },
   "preferences": {

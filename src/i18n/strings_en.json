@@ -7,19 +7,24 @@
   },
   "steadyPrecession": {
     "spinRate": "Spin rate (Hz)",
-    "armMass": "Arm mass (kg)",
-    "pivotDistance": "Pivot to mass (m)",
+    "armMass": "Counterweight (kg)",
+    "pivotDistance": "Pivot to weight (m)",
+    "tiltAngle": "Axle tilt θ (°)",
     "pivotAtCom": "Pivot at center of mass",
     "gyroscopeTitle": "Gyroscope",
     "vectorDiagramTitle": "Why sideways, not down?",
-    "vectorInsight": "Gravity pulls down — but τ = dL/dt is ⊥ L, so the tip moves sideways.",
+    "vectorInsight": "Gravity pulls down — but τ = dL/dt is ⊥ L, so L swings sideways instead of falling.",
     "noTorqueMessage": "Pivot at center of mass: τ = 0, no precession.",
     "graphTitle": "Precession angle φ vs. time",
     "readoutsTitle": "Rates",
-    "formulaHint": "Ω = τ / (I ω)  —  faster spin → slower precession"
+    "formulaHint": "Ω = M g l / (I₃ ω) — faster spin, slower precession. Tilt cancels out.",
+    "validityWarning": "Ω is no longer small next to ω, so this closed form is only rough here. A real top would nutate — see the Nutation screen.",
+    "tiltHint": "Change the tilt: Ω does not move.",
+    "spinSlowed": "Wheel drawn slowed — see the spin readout"
   },
   "nutation": {
     "sceneTitle": "Heavy top — path traced by the axle tip",
+    "tipPathTitle": "Axle tip, seen from above",
     "graphTitle": "Tilt θ vs. time",
     "spinRate": "Spin ω₃ (Hz)",
     "initialTilt": "Release tilt θ₀ (°)",
@@ -31,11 +36,24 @@
     "friction": "Friction (top spins down)",
     "releaseAgain": "Release again",
     "readoutsTitle": "Measurements",
+    "conservedNote": "E and p_φ hold fixed while friction is off.",
     "belowCritical": "Spin is below the critical value — no steady precession exists at this tilt, so the top must nutate.",
     "insight": "Real tops are released, not handed the answer: the axis dips, picks up precession, and rises again."
   },
   "torqueFree": {
-    "placeholder": "Torque-free tumbling — asymmetric rigid body via Euler's equations. Coming soon."
+    "sceneTitle": "Tumbling block — no torque at all",
+    "graphTitle": "Body-frame spin components ω vs. time",
+    "spinAxis": "Spin it about",
+    "axisMax": "Largest-inertia axis — stable",
+    "axisIntermediate": "Intermediate axis — flips",
+    "axisMin": "Smallest-inertia axis — stable",
+    "spinRate": "Launch spin (rad/s)",
+    "nudge": "Add a small wobble at launch",
+    "readoutsTitle": "Measurements",
+    "stable": "stable",
+    "unstable": "unstable",
+    "stabilityRule": "A free body spins steadily about its largest or smallest inertia axis. About the one in between, the smallest wobble grows until the body flips — and keeps flipping.",
+    "conservedNote": "T and |L| are exactly constant, flips included. Nothing pushes the block."
   },
   "a11y": {
     "steadyPrecession": {
@@ -47,8 +65,9 @@
       "currentDetailsPattern": "Predicted precession rate is {{predictedHz}} hertz. Measured slope is {{measuredHz}} hertz.",
       "controls": {
         "spinRate": "Spin rate",
-        "armMass": "Arm mass",
-        "pivotDistance": "Pivot to mass distance",
+        "armMass": "Counterweight mass",
+        "pivotDistance": "Pivot to counterweight distance",
+        "tiltAngle": "Axle tilt from vertical",
         "pivotAtCom": "Pivot at center of mass"
       }
     },
@@ -69,11 +88,16 @@
     },
     "torqueFree": {
       "screenSummary": {
-        "playArea": "The play area will show a torque-free asymmetric rigid body tumbling in space, with the Poinsot construction on the inertia ellipsoid.",
-        "controlArea": "Controls for initial spin axis and moment-of-inertia ratios will appear here.",
-        "interactionHint": "This screen is under construction."
+        "playArea": "The play area shows a rectangular block tumbling with no torque on it, a fixed arrow for the angular momentum, a moving arrow for the angular velocity with its trail, and a graph of the three body-frame spin components versus time.",
+        "controlArea": "The control area lets you choose which principal axis to spin the block about, set the launch spin rate, and turn the launch wobble on or off. Readouts give the stability of the chosen axis, the growth rate of a disturbance, and the two conserved quantities.",
+        "interactionHint": "Spin the block about its largest-inertia axis and watch it hold steady, then switch to the intermediate axis and watch it flip."
       },
-      "currentDetails": "Torque-free tumbling screen placeholder."
+      "currentDetailsPattern": "Spin components are {{omega1}}, {{omega2}} and {{omega3}} radians per second about the largest, intermediate and smallest inertia axes.",
+      "controls": {
+        "spinAxis": "Axis to spin the block about",
+        "spinRate": "Launch spin rate",
+        "nudge": "Launch wobble"
+      }
     }
   },
   "preferences": {

@@ -1,25 +1,40 @@
 /**
  * TopSceneNode.ts
  *
- * Perspective view of the heavy symmetric top: the pivoted wheel, the path its
- * axle tip traces on the sphere, and the [θ_min, θ_max] band that path is
- * confined to. The trace is the payoff of the full dynamics — cusps, loops, and
- * smooth waves are all the same equations released three different ways.
+ * The heavy symmetric top in three dimensions: a pivoted wheel, the band of tilts its
+ * axis is trapped in, and the path the axle tip carves on the sphere.
+ *
+ * The trace is the whole point of the screen — cusps, loops and smooth waves are the
+ * same equations released three different ways — so the scene is built around keeping
+ * it readable while a solid wheel swings through the middle of it:
+ *
+ *  - the trace is split by depth, and the wheel is drawn between the two halves, so
+ *    the path genuinely passes behind the wheel and back out in front of it;
+ *  - the far half is dimmed, which is enough on its own to tell a loop that goes
+ *    away from you from one that comes toward you;
+ *  - the two turning-point circles are drawn on the sphere, marking the band of tilts
+ *    the axis can never leave.
+ *
+ * The companion `TipPathViewNode` shows the same path flattened from above, which is
+ * where the *shape* of each release mode is easiest to name.
  */
 
 import { Multilink } from "scenerystack/axon";
-import { Bounds2, Vector2 } from "scenerystack/dot";
+import { Bounds2, Vector2, Vector3 } from "scenerystack/dot";
 import { Shape } from "scenerystack/kite";
-import { Circle, Line, Node, Path, Rectangle, Text } from "scenerystack/scenery";
-import { PhetFont } from "scenerystack/scenery-phet";
+import { Circle, Node, Path } from "scenerystack/scenery";
 import {
-  projectAxisPoint,
-  projectRimPoint,
-  projectTiltCircle,
-  type TopProjection,
-  wheelRimPoints,
-  wheelSilhouette,
-} from "../../common/view/TopProjection.js";
+  type Camera3D,
+  circleArcPoints,
+  createCamera,
+  depth,
+  project,
+  projectHorizontalCircle,
+  symmetryAxis,
+} from "../../common/view/Camera3D.js";
+import { GyroStageNode } from "../../common/view/GyroStageNode.js";
+import { SpinningWheelNode, type WheelGeometry } from "../../common/view/SpinningWheelNode.js";
+import { SpinPhaseTracker, spinBlurFor } from "../../common/view/SpinPhase.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import {
   NUTATION_COM_DISTANCE_M,
@@ -27,189 +42,182 @@ import {
   NUTATION_WHEEL_RADIUS_M,
 } from "../../RigidBodyPrecessionConstants.js";
 import type { NutationModel } from "../model/NutationModel.js";
+import { TIP_RADIUS_M } from "./TipPathViewNode.js";
 
-export const TOP_SCENE_WIDTH = 420;
-export const TOP_SCENE_HEIGHT = 345;
+export const TOP_SCENE_WIDTH = 390;
+export const TOP_SCENE_HEIGHT = 300;
+
+const CAMERA: Camera3D = createCamera(new Vector2(195, 154), 188, 22);
 
 /**
- * Drawn length of the axle beyond the wheel (m). Visual only — the dynamics depend on
- * the inertias and the center-of-mass distance, not on where the axle ends. It is long
- * enough that the traced tip circle clears the wheel rim at every tilt in range.
+ * The pivot sits on a tall pillar so the wheel — which is wide and mounted close to
+ * the pivot — swings clear of the floor even with the axle near horizontal.
  */
-const AXLE_LENGTH_M = 0.85;
+const STAND_HEIGHT_M = 0.62;
+const GROUND_RADIUS_M = 0.5;
 
-const PROJECTION: TopProjection = {
-  pivot: new Vector2(210, 235),
-  pxPerM: 165,
-  perspective: 0.45,
+/**
+ * Drawn length of the axle beyond the wheel (m). Visual only: the dynamics depend on
+ * the inertias and the center-of-mass distance, not on where the axle ends. Shared
+ * with the top-down view so both draw the tip on the same sphere.
+ */
+const AXLE_LENGTH_M = TIP_RADIUS_M;
+
+const WHEEL_GEOMETRY: WheelGeometry = {
+  radius: NUTATION_WHEEL_RADIUS_M,
+  halfThickness: 0.035,
+  hubRadius: 0.045,
+  comDistance: NUTATION_COM_DISTANCE_M,
+  axleLength: AXLE_LENGTH_M,
+  axleRadius: 0.018,
 };
 
-const LABEL_FONT = new PhetFont({ size: 10 });
-
-function bandShape(theta: number): Shape {
-  const circle = projectTiltCircle(PROJECTION, theta, AXLE_LENGTH_M);
-  return Shape.ellipse(circle.center.x, circle.center.y, Math.max(1, circle.radiusX), Math.max(1, circle.radiusY), 0);
+/** Polyline of the horizontal circle the tip would trace at a fixed tilt. */
+function tiltCircleShape(theta: number): Shape {
+  const circle = projectHorizontalCircle(
+    CAMERA,
+    AXLE_LENGTH_M * Math.cos(theta),
+    Math.max(0.001, AXLE_LENGTH_M * Math.sin(theta)),
+  );
+  return Shape.polygon(circleArcPoints(circle, 0, 2 * Math.PI, 64));
 }
 
 export class TopSceneNode extends Node {
+  private readonly spinPhase = new SpinPhaseTracker();
+
   public constructor(model: NutationModel) {
     super();
     this.localBounds = new Bounds2(0, 0, TOP_SCENE_WIDTH, TOP_SCENE_HEIGHT);
 
-    const pivot = PROJECTION.pivot;
-
-    const ground = new Path(Shape.ellipse(pivot.x, pivot.y + 62, 150, 22, 0), {
-      fill: RigidBodyPrecessionColors.sceneGroundColorProperty,
-      stroke: RigidBodyPrecessionColors.panelBorderColorProperty,
-      lineWidth: 1,
+    const stage = new GyroStageNode(CAMERA, {
+      standHeight: STAND_HEIGHT_M,
+      groundRadius: GROUND_RADIUS_M,
+      postRadius: 0.022,
+      verticalExtent: AXLE_LENGTH_M + 0.04,
     });
-    this.addChild(ground);
 
-    // Vertical reference: θ is measured from this line.
-    const verticalAxis = new Line(pivot.x, pivot.y - 200, pivot.x, pivot.y, {
-      stroke: RigidBodyPrecessionColors.textColorProperty,
-      lineWidth: 1,
-      lineDash: [4, 5],
-      opacity: 0.45,
-    });
-    this.addChild(verticalAxis);
-
-    // Turning-point circles: the axis tip can never leave the band between them.
-    const bandMin = new Path(new Shape(), {
+    // Two separate paths rather than one filled zone: on the sphere the two turning
+    // circles are not concentric in projection, so there is no honest region to fill
+    // between them. The top-down panel, where they are concentric, fills it instead.
+    const bandOptions = {
       stroke: RigidBodyPrecessionColors.nutationBandColorProperty,
-      lineWidth: 1.5,
+      lineWidth: 1.4,
       lineDash: [6, 5],
-      opacity: 0.9,
-    });
-    const bandMax = new Path(new Shape(), {
-      stroke: RigidBodyPrecessionColors.nutationBandColorProperty,
-      lineWidth: 1.5,
-      lineDash: [6, 5],
-      opacity: 0.9,
-    });
-    this.addChild(bandMin);
-    this.addChild(bandMax);
+      opacity: 0.85,
+    };
+    const bandMin = new Path(null, bandOptions);
+    const bandMax = new Path(null, bandOptions);
 
-    const tipTrace = new Path(new Shape(), {
+    const traceFar = new Path(null, {
       stroke: RigidBodyPrecessionColors.tipTraceColorProperty,
-      lineWidth: 2,
+      lineWidth: 1.6,
       lineJoin: "round",
+      opacity: 0.4,
     });
-    this.addChild(tipTrace);
+    const traceNear = new Path(null, {
+      stroke: RigidBodyPrecessionColors.tipTraceColorProperty,
+      lineWidth: 2.4,
+      lineJoin: "round",
+      opacity: 0.95,
+    });
 
-    const support = new Rectangle(pivot.x - 5, pivot.y, 10, 56, {
-      fill: RigidBodyPrecessionColors.gyroscopeColorProperty,
-      cornerRadius: 2,
-    });
-    const supportBase = new Rectangle(pivot.x - 34, pivot.y + 52, 68, 10, {
-      fill: RigidBodyPrecessionColors.panelBorderColorProperty,
-      cornerRadius: 3,
-    });
-    this.addChild(support);
-    this.addChild(supportBase);
+    const wheel = new SpinningWheelNode(CAMERA, WHEEL_GEOMETRY, this.palette(), { groundZ: -STAND_HEIGHT_M });
 
-    const axle = new Line(0, 0, 0, 0, {
-      stroke: RigidBodyPrecessionColors.gyroscopeColorProperty,
-      lineWidth: 4,
-      lineCap: "round",
-    });
-    this.addChild(axle);
-
-    const hub = new Path(new Shape(), {
-      fill: RigidBodyPrecessionColors.gyroscopeColorProperty,
-      opacity: 0.55,
-    });
-    this.addChild(hub);
-
-    const wheel = new Path(new Shape(), {
-      fill: RigidBodyPrecessionColors.wheelFillColorProperty,
-      stroke: RigidBodyPrecessionColors.angularMomentumColorProperty,
-      lineWidth: 3,
-    });
-    this.addChild(wheel);
-
-    const spinSpoke = new Line(0, 0, 0, 0, {
-      stroke: RigidBodyPrecessionColors.weightColorProperty,
-      lineWidth: 3,
-      lineCap: "round",
-    });
-    this.addChild(spinSpoke);
-
-    const pivotDot = new Circle(6, {
+    const pivotDot = new Circle(5, {
       fill: RigidBodyPrecessionColors.accentColorProperty,
       stroke: RigidBodyPrecessionColors.textColorProperty,
       lineWidth: 1,
-      center: pivot,
+      center: project(CAMERA, Vector3.ZERO),
     });
-    this.addChild(pivotDot);
-
-    const tipDot = new Circle(5, { fill: RigidBodyPrecessionColors.tipTraceColorProperty });
-    this.addChild(tipDot);
-
-    const bandLabel = new Text("θ band", {
-      font: LABEL_FONT,
-      fill: RigidBodyPrecessionColors.nutationBandColorProperty,
-      opacity: 0.9,
+    const tipDot = new Circle(5, {
+      fill: RigidBodyPrecessionColors.tipTraceColorProperty,
+      stroke: RigidBodyPrecessionColors.backgroundColorProperty,
+      lineWidth: 1,
     });
-    this.addChild(bandLabel);
+
+    this.children = [stage, bandMin, bandMax, traceFar, wheel, traceNear, pivotDot, tipDot];
 
     const update = (): void => {
       const theta = model.thetaProperty.value;
       const phi = model.phiProperty.value;
-      const psi = model.psiProperty.value;
       const band = model.nutationBandProperty.value;
 
-      const tip = projectAxisPoint(PROJECTION, theta, phi, AXLE_LENGTH_M);
-      axle.setPoint1(pivot.x, pivot.y);
-      axle.setPoint2(tip.x, tip.y);
-      tipDot.center = tip;
+      wheel.update({
+        theta,
+        phi,
+        psiDisplay: this.spinPhase.phaseAt(model.timer.timeProperty.value, model.spinProperty.value),
+        spinBlur: spinBlurFor(model.spinProperty.value),
+      });
 
-      const rim = wheelRimPoints(PROJECTION, theta, phi, NUTATION_COM_DISTANCE_M, NUTATION_WHEEL_RADIUS_M);
-      wheel.shape = Shape.polygon(rim);
+      tipDot.center = project(CAMERA, symmetryAxis(theta, phi).timesScalar(AXLE_LENGTH_M));
 
-      const [rimA, rimB] = wheelSilhouette(PROJECTION, theta, phi, NUTATION_COM_DISTANCE_M, NUTATION_WHEEL_RADIUS_M);
-      hub.shape = Shape.polygon([pivot, rimA, rimB]);
-
-      const spokeTip = projectRimPoint(PROJECTION, theta, phi, NUTATION_COM_DISTANCE_M, NUTATION_WHEEL_RADIUS_M, psi);
-      const wheelCenter = projectAxisPoint(PROJECTION, theta, phi, NUTATION_COM_DISTANCE_M);
-      spinSpoke.setPoint1(wheelCenter.x, wheelCenter.y);
-      spinSpoke.setPoint2(spokeTip.x, spokeTip.y);
-
-      bandMin.shape = bandShape(band.thetaMin);
-      bandMax.shape = bandShape(band.thetaMax);
+      // ── Turning-point band ──────────────────────────────────────────────────
       const bandVisible = band.thetaMax - band.thetaMin > 1e-3;
+      if (bandVisible) {
+        bandMin.shape = tiltCircleShape(band.thetaMin);
+        bandMax.shape = tiltCircleShape(band.thetaMax);
+      }
       bandMin.visible = bandVisible;
       bandMax.visible = bandVisible;
-      bandLabel.visible = bandVisible;
-      if (bandVisible) {
-        const outer = projectTiltCircle(PROJECTION, band.thetaMax, AXLE_LENGTH_M);
-        bandLabel.right = outer.center.x - outer.radiusX - 4;
-        bandLabel.centerY = outer.center.y;
+
+      // ── Tip trace, split at the wheel ───────────────────────────────────────
+      // A single path would either sit entirely on top of the wheel or entirely
+      // behind it; splitting by depth is what makes the loops read as loops.
+      const samples = model.getTraceSamples();
+      const first = Math.max(0, samples.length - NUTATION_TRACE_DRAW_SAMPLES);
+      const far = new Shape();
+      const near = new Shape();
+      let previousWasFar: boolean | null = null;
+      let previousPoint: Vector2 | null = null;
+
+      for (let i = first; i < samples.length; i++) {
+        const sample = samples[i];
+        if (!sample) {
+          continue;
+        }
+        const world = symmetryAxis(sample.theta, sample.phi).timesScalar(AXLE_LENGTH_M);
+        const point = project(CAMERA, world);
+        const isFar = depth(CAMERA, world) > 0;
+        const target = isFar ? far : near;
+
+        if (previousWasFar !== isFar || previousPoint === null) {
+          // Start the new half at the previous point so the two halves join up.
+          target.moveToPoint(previousPoint ?? point);
+        }
+        target.lineToPoint(point);
+        previousWasFar = isFar;
+        previousPoint = point;
       }
 
-      const samples = model.getTraceSamples();
-      const firstDrawn = Math.max(0, samples.length - NUTATION_TRACE_DRAW_SAMPLES);
-      if (samples.length - firstDrawn > 1) {
-        const traceShape = new Shape();
-        for (let i = firstDrawn; i < samples.length; i++) {
-          const sample = samples[i];
-          if (!sample) {
-            continue;
-          }
-          const point = projectAxisPoint(PROJECTION, sample.theta, sample.phi, AXLE_LENGTH_M);
-          if (i === firstDrawn) {
-            traceShape.moveToPoint(point);
-          } else {
-            traceShape.lineToPoint(point);
-          }
-        }
-        tipTrace.shape = traceShape;
-      } else {
-        tipTrace.shape = new Shape();
-      }
+      traceFar.shape = far;
+      traceNear.shape = near;
     };
 
-    Multilink.multilink([model.thetaProperty, model.phiProperty, model.psiProperty], update);
+    Multilink.multilink([model.thetaProperty, model.phiProperty], update);
+
+    // The wheel's shading is baked from palette values, so redraw on theme change.
+    Multilink.multilink(
+      [
+        RigidBodyPrecessionColors.wheelBodyColorProperty,
+        RigidBodyPrecessionColors.wheelMarkingColorProperty,
+        RigidBodyPrecessionColors.gyroscopeColorProperty,
+        RigidBodyPrecessionColors.sceneShadowColorProperty,
+      ],
+      () => {
+        wheel.setPalette(this.palette());
+        update();
+      },
+    );
+
     update();
+  }
+
+  private palette() {
+    return {
+      body: RigidBodyPrecessionColors.wheelBodyColorProperty.value,
+      marking: RigidBodyPrecessionColors.wheelMarkingColorProperty.value,
+      axle: RigidBodyPrecessionColors.gyroscopeColorProperty.value,
+      shadow: RigidBodyPrecessionColors.sceneShadowColorProperty.value,
+    };
   }
 }

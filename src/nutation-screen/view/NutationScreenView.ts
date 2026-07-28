@@ -5,7 +5,7 @@
  * the launch controls on the right.
  */
 
-import { Node, Rectangle, VBox } from "scenerystack/scenery";
+import { HBox, Node, Rectangle, VBox } from "scenerystack/scenery";
 import { ResetAllButton, TimeControlNode, TimeSpeed } from "scenerystack/scenery-phet";
 import type { ScreenViewOptions } from "scenerystack/sim";
 import { ScreenView } from "scenerystack/sim";
@@ -22,6 +22,7 @@ import type { NutationModel } from "../model/NutationModel.js";
 import { NutationAngleGraphNode } from "./NutationAngleGraphNode.js";
 import { NutationControlPanel } from "./NutationControlPanel.js";
 import { NutationScreenSummaryContent } from "./NutationScreenSummaryContent.js";
+import { TipPathViewNode } from "./TipPathViewNode.js";
 import { TopSceneNode } from "./TopSceneNode.js";
 
 const BOTTOM_CHROME_HEIGHT = 56;
@@ -53,15 +54,25 @@ export class NutationScreenView extends ScreenView {
     const playAreaBottom = this.layoutBounds.maxY - SCREEN_VIEW_MARGIN - BOTTOM_CHROME_HEIGHT;
 
     const scenePanel = new PlayAreaPanel(strings.sceneTitleStringProperty, new TopSceneNode(model));
+    const tipPathPanel = new PlayAreaPanel(strings.tipPathTitleStringProperty, new TipPathViewNode(model));
+
+    // The sphere view and the flattened view of the same path, side by side: the
+    // 3-D one shows where the top is, the flat one shows what the path is called.
+    const topRow = new HBox({
+      spacing: 8,
+      align: "top",
+      children: [scenePanel, tipPathPanel],
+    });
+
     const graphPanel = new PlayAreaPanel(
       strings.graphTitleStringProperty,
-      new NutationAngleGraphNode(model, Math.max(280, playAreaWidth - 60)),
+      new NutationAngleGraphNode(model, Math.max(280, topRow.width - 74)),
     );
 
     const playColumn = new VBox({
-      spacing: 8,
+      spacing: 6,
       align: "left",
-      children: [scenePanel, graphPanel],
+      children: [topRow, graphPanel],
     });
 
     // Scale the column down if the two panels together overflow the play area.

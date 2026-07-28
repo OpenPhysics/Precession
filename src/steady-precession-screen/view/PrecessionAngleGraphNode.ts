@@ -20,7 +20,7 @@ import { Shape } from "scenerystack/kite";
 import { Orientation } from "scenerystack/phet-core";
 import { HBox, Node, Rectangle, Text } from "scenerystack/scenery";
 import { PhetFont } from "scenerystack/scenery-phet";
-import { calculateTickSpacing } from "../../common/view/BambooChartUtils.js";
+import { calculateTickSpacing, tickDecimalsFor } from "../../common/view/BambooChartUtils.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import { PRECESSION_GRAPH_HEIGHT } from "../../RigidBodyPrecessionConstants.js";
 import type { SteadyPrecessionModel } from "../model/SteadyPrecessionModel.js";
@@ -63,6 +63,8 @@ export class PrecessionAngleGraphNode extends Node {
   private readonly xTickLabels: TickLabelSet;
   private readonly yTickLabels: TickLabelSet;
   private readonly model: SteadyPrecessionModel;
+  /** Decimal places for the y tick labels, tracked so `createLabel` can read it. */
+  private yDecimals = 1;
 
   public constructor(model: SteadyPrecessionModel, width = 360) {
     super();
@@ -139,8 +141,10 @@ export class PrecessionAngleGraphNode extends Node {
     this.yTickLabels = new TickLabelSet(this.chartTransform, Orientation.VERTICAL, initialYSpacing, {
       edge: "min",
       extent: TICK_EXTENT,
+      // φ climbs without bound, so the axis rescales constantly; match the label
+      // precision to the live spacing or the labels collide into an unreadable smear.
       createLabel: (value) =>
-        new Text(toFixed(value, 2), {
+        new Text(toFixed(value, this.yDecimals), {
           font: TICK_LABEL_FONT,
           fill: RigidBodyPrecessionColors.textColorProperty,
           maxWidth: 36,
@@ -164,9 +168,11 @@ export class PrecessionAngleGraphNode extends Node {
       font: AXIS_FONT,
       fill: RigidBodyPrecessionColors.textColorProperty,
       centerX: Y_AXIS_GUTTER + width / 2,
-      top: CHART_HEIGHT + 18,
+      top: CHART_HEIGHT + 16,
     });
 
+    // Inside the plot's top-left corner: the trace climbs away from there, so the
+    // legend never sits on the data, and it stays clear of the x tick labels.
     const legend = new HBox({
       spacing: 10,
       align: "center",
@@ -176,7 +182,7 @@ export class PrecessionAngleGraphNode extends Node {
           align: "center",
           children: [
             legendSwatch(RigidBodyPrecessionColors.graphTraceColorProperty),
-            new Text("measured", { font: LEGEND_FONT, fill: RigidBodyPrecessionColors.textColorProperty }),
+            new Text("φ(t)", { font: LEGEND_FONT, fill: RigidBodyPrecessionColors.textColorProperty }),
           ],
         }),
         new HBox({
@@ -184,12 +190,12 @@ export class PrecessionAngleGraphNode extends Node {
           align: "center",
           children: [
             legendSwatch(RigidBodyPrecessionColors.precessionColorProperty, true),
-            new Text("Ω_pred", { font: LEGEND_FONT, fill: RigidBodyPrecessionColors.textColorProperty }),
+            new Text("slope = Ω", { font: LEGEND_FONT, fill: RigidBodyPrecessionColors.textColorProperty }),
           ],
         }),
       ],
-      left: Y_AXIS_GUTTER + 4,
-      top: CHART_HEIGHT + 2,
+      left: Y_AXIS_GUTTER + 8,
+      top: 6,
     });
 
     this.addChild(yTitle);
@@ -226,6 +232,13 @@ export class PrecessionAngleGraphNode extends Node {
 
     const xSpacing = calculateTickSpacing(xRange.getLength());
     const ySpacing = calculateTickSpacing(yRange.getLength());
+    const yDecimals = tickDecimalsFor(ySpacing);
+    if (yDecimals !== this.yDecimals) {
+      // Labels are cached per value, so a precision change has to evict them or the
+      // axis ends up reading "8, 6, 2.0, 0.0".
+      this.yDecimals = yDecimals;
+      this.yTickLabels.invalidateTickLabelSet();
+    }
     this.verticalGrid.setSpacing(xSpacing);
     this.horizontalGrid.setSpacing(ySpacing);
     this.xTickMarks.setSpacing(xSpacing);

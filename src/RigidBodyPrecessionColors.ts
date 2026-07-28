@@ -165,10 +165,39 @@ const RigidBodyPrecessionColors = {
     projector: "#6a1b9a",
   }),
 
-  /** Face of the gyroscope wheel on the nutation screen (translucent so the trace shows through). */
-  wheelFillColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "wheelFill", {
-    default: new Color(79, 195, 247, 0.55),
-    projector: new Color(2, 119, 189, 0.4),
+  // ── Solid gyroscope wheel ────────────────────────────────────────────────────
+  // These are *base* colors. The renderer shades them per surface with a fixed key
+  // light (see Camera3D), so what reaches the screen is a family of tints, not the
+  // literal value here. Pick mid-tones: they need headroom to brighten and darken.
+
+  /** Body of the gyroscope wheel — faces and rim. */
+  wheelBodyColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "wheelBody", {
+    default: "#5b9bd5",
+    projector: "#3f7cb8",
+  }),
+
+  /** Painted quadrants and rim studs that make the wheel's spin visible. */
+  wheelMarkingColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "wheelMarking", {
+    default: "#f2f4f8",
+    projector: "#1f3a52",
+  }),
+
+  /** Shadow the wheel casts on the ground plane. */
+  sceneShadowColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "sceneShadow", {
+    default: new Color(0, 0, 0, 0.35),
+    projector: new Color(60, 70, 80, 0.22),
+  }),
+
+  /** Concentric rings and radials on the ground plane — the scene's depth reference. */
+  sceneGroundGridColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "sceneGroundGrid", {
+    default: new Color(120, 160, 210, 0.35),
+    projector: new Color(90, 110, 130, 0.4),
+  }),
+
+  /** The stand the gyroscope pivots on. */
+  standColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "stand", {
+    default: "#8c98a4",
+    projector: "#66737f",
   }),
 
   /** Readout color for a state that is unstable or out of range (spin below critical). */

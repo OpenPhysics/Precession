@@ -19,6 +19,7 @@ import {
   PIVOT_DISTANCE_RANGE,
   SPIN_RATE_RANGE,
   STEADY_PRECESSION_PANEL_WIDTH,
+  TILT_ANGLE_RANGE,
 } from "../../RigidBodyPrecessionConstants.js";
 import type { SteadyPrecessionModel } from "../model/SteadyPrecessionModel.js";
 
@@ -117,6 +118,34 @@ export class SteadyPrecessionControlPanel extends SimPanel {
       a11y.controls.pivotDistanceStringProperty,
     );
 
+    // Tilt is in degrees on screen but radians in the model.
+    const tiltDegreesRange = new Range((TILT_ANGLE_RANGE.min * 180) / Math.PI, (TILT_ANGLE_RANGE.max * 180) / Math.PI);
+    const tiltDegreesProperty = new NumberProperty(
+      clamp((model.tiltAngleProperty.value * 180) / Math.PI, tiltDegreesRange.min, tiltDegreesRange.max),
+      { units: "°" },
+    );
+    let suppressTiltLink = false;
+    model.tiltAngleProperty.link((radians) => {
+      if (suppressTiltLink) {
+        return;
+      }
+      tiltDegreesProperty.value = clamp((radians * 180) / Math.PI, tiltDegreesRange.min, tiltDegreesRange.max);
+    });
+    tiltDegreesProperty.lazyLink((degrees) => {
+      suppressTiltLink = true;
+      model.tiltAngleProperty.value = (degrees * Math.PI) / 180;
+      suppressTiltLink = false;
+    });
+
+    const tiltControl = createNumberControl(
+      strings.tiltAngleStringProperty,
+      tiltDegreesProperty,
+      tiltDegreesRange,
+      1,
+      0,
+      a11y.controls.tiltAngleStringProperty,
+    );
+
     model.pivotAtCenterOfMassProperty.link((atCom) => {
       pivotDistanceControl.enabledProperty.value = !atCom;
     });
@@ -135,8 +164,13 @@ export class SteadyPrecessionControlPanel extends SimPanel {
     );
 
     const torqueValueProperty = new DerivedProperty(
-      [model.armMassProperty, model.pivotToMassDistanceProperty, model.pivotAtCenterOfMassProperty],
-      () => `${toFixed(model.getVectors().torqueMagnitude, 3)} N·m`,
+      [
+        model.armMassProperty,
+        model.pivotToMassDistanceProperty,
+        model.pivotAtCenterOfMassProperty,
+        model.tiltAngleProperty,
+      ],
+      () => `${toFixed(model.getVectors().torqueMagnitude, 2)} N·m`,
     );
     const predictedValueProperty = new DerivedProperty([model.predictedPrecessionRateProperty], (omega) => {
       return `${toFixed(omega / (2 * Math.PI), 3)} Hz`;
@@ -162,20 +196,39 @@ export class SteadyPrecessionControlPanel extends SimPanel {
       opacity: 0.85,
     });
 
+    // Ω = Mgl/(I₃ω) drops the angular momentum the precession itself carries. The
+    // ratio Ω/ω says how big that omission is, and the warning fires when the answer
+    // stops being trustworthy — which is precisely the regime Screen 2 integrates.
+    const ratioValueProperty = new DerivedProperty([model.gyroscopicRatioProperty], (ratio) =>
+      Number.isFinite(ratio) ? `1 : ${toFixed(1 / Math.max(ratio, 1e-9), 0)}` : "—",
+    );
+
+    const validityWarning = new Text(strings.validityWarningStringProperty, {
+      font: new PhetFont({ size: 11 }),
+      fill: RigidBodyPrecessionColors.warningColorProperty,
+      maxWidth: STEADY_PRECESSION_PANEL_WIDTH - 40,
+    });
+    model.idealizationValidProperty.link((valid) => {
+      validityWarning.visible = !valid;
+    });
+
     const content = new VBox({
-      spacing: 10,
+      spacing: 9,
       align: "left",
       children: [
         spinControl,
         armMassControl,
         pivotDistanceControl,
+        tiltControl,
         pivotAtComCheckbox,
         separator,
         readoutHeader,
         readoutRow("τ", torqueValueProperty, RigidBodyPrecessionColors.torqueColorProperty),
         readoutRow("Ω_pred", predictedValueProperty, RigidBodyPrecessionColors.precessionColorProperty),
         readoutRow("Ω_meas", measuredValueProperty, RigidBodyPrecessionColors.graphTraceColorProperty),
+        readoutRow("Ω : ω", ratioValueProperty, RigidBodyPrecessionColors.textColorProperty),
         formulaHint,
+        validityWarning,
       ],
     });
 
