@@ -13,19 +13,55 @@ multi-screen sims, see [`doc/multi-screen.md`](doc/multi-screen.md).
 | File | Purpose |
 |---|---|
 | `src/RigidBodyPrecessionColors.ts` | All `ProfileColorProperty` instances |
-| `src/SimConstants.ts` | Named numeric constants (layout px, physics SI units) |
+| `src/RigidBodyPrecessionConstants.ts` | Named numeric constants (layout px, physics SI units) |
 | `src/RigidBodyPrecessionNamespace.ts` | Namespace for color property names |
 | `src/i18n/StringManager.ts` | Singleton localized string accessor |
-| `src/precession-screen/RigidBodyPrecessionScreen.ts` | Screen wrapper |
-| `src/precession-screen/model/RigidBodyPrecessionModel.ts` | Simulation state and logic |
-| `src/precession-screen/view/RigidBodyPrecessionScreenView.ts` | Visual nodes, layout, `screenSummaryContent` + `pdomOrder` |
-| `src/precession-screen/view/RigidBodyPrecessionScreenSummaryContent.ts` | Accessible screen summary (reference a11y pattern) |
-| `src/precession-screen/view/RigidBodyPrecessionKeyboardHelpContent.ts` | Keyboard-help dialog content |
+| `src/steady-precession-screen/` | Screen 1 — idealized Ω = τ/(Iω) gyroscope |
+| `src/nutation-screen/` | Screen 2 — heavy symmetric top integrated from its full Lagrangian |
+| `src/torque-free-screen/` | Screen 3 — Euler/Poinsot tumbling (placeholder) |
+| `src/common/rigid-body/SteadyPrecessionPhysics.ts` | Screen 1's closed-form relations |
+| `src/common/rigid-body/HeavySymmetricTopPhysics.ts` | Screen 2's RK4 integrator, invariants, turning points |
+| `src/common/rigid-body/TopTipTrace.ts` | Ring buffer of (t, θ, φ) samples behind the tip path and θ(t) graph |
+| `src/common/view/TopProjection.ts` | Euler angles → oblique 2-D projection (axis, wheel rim, tilt circles) |
+| `src/common/view/PlayAreaPanel.ts` | Titled panel wrapper shared by every screen's play area |
 | `src/common/SimPanel.ts` | Pre-themed `Panel` wrapper (uses `RigidBodyPrecessionColors` automatically) |
 | `src/common/SimButtonOptions.ts` | Flat button-appearance option bundles + light-control-surface combo-box options |
 | `src/common/TimeModel.ts` | Composable play/pause + elapsed-time model for animated sims |
 | `scripts/generate-icons.ts` | PNG icons from `public/icons/icon.svg` |
 | `scripts/rename-sim.ts` | Automated fork/rename across all files and folders |
+
+## Physics
+
+### Screen 1 — steady precession
+
+Closed form only: Ω = τ / (I ω), with the tilt held fixed. Deliberately idealized so the
+gyroscopic relation stands alone.
+
+### Screen 2 — nutation (`HeavySymmetricTopPhysics.ts`)
+
+The full heavy-symmetric-top Lagrangian in Euler angles (θ, φ, ψ), integrated with RK4 at
+a fixed 0.5 ms internal substep. θ is a dynamical variable, so releasing the top produces
+real nutation. Key entry points:
+
+- `stepHeavyTop` — the integrator; substeps `dt`, wraps ψ, applies the tilt limits
+- `createReleaseState` — the four release modes, which differ only in φ̇(0): `cusp` (0),
+  `loop` (−Ω_slow), `smooth` (½Ω_slow), `steady` (Ω_slow)
+- `nutationTurningPoints` — bisects the turning-point cubic u̇² = f(cos θ) for the band
+  the axis is confined to; drawn as the two dashed circles and the graph's reference lines
+- `steadyPrecessionRates` / `criticalSpinRate` — roots of I₁cos θ Ω² − I₃ω₃Ω + Mgl = 0,
+  and the spin below which no steady precession exists
+- `totalEnergy`, `verticalAngularMomentum`, `spinAngularMomentum` — invariants, exact
+  without friction; the test suite asserts they hold to 6+ decimal places over 10 s
+
+Friction is a phenomenological viscous model (`tipDrag` on the center of mass, `spinDrag`
+on the spin), off by default. `maxTilt` is an inelastic mechanical stop where the axle
+rests against its mount — the nutation screen sets it to 90°.
+
+Apparatus constants (`NUTATION_*` in `RigidBodyPrecessionConstants.ts`) are a
+demonstration gyroscope wheel. Note that ω_nut · Ω_slow = M g l / I₁ is fixed by the
+apparatus alone: a hand-sized top nutates at several hertz no matter how it is spun, so
+the wheel is deliberately large and short-armed to bring both timescales on screen at
+once (≈1.6 Hz nutation, ≈3 s per precession revolution), with a slow-motion option.
 
 ## Common components
 
@@ -110,6 +146,8 @@ Fleet-standard Vitest layout (keep when forking):
 | `vitest.config.ts` | `happy-dom` environment; `setupFiles: ["./tests/setup.ts"]`; `execArgv: ["--expose-gc"]` |
 | `tests/setup.ts` | Canvas / AudioContext mocks + `init({ name: "…" })` before SceneryStack imports |
 | `tests/TimeModel.test.ts` | Sample model unit tests — replace with real physics tests |
+| `tests/HeavySymmetricTopPhysics.test.ts` | Screen 2 integrator vs. analytic results (invariants, turning points, fast-top limits) |
+| `tests/NutationModel.test.ts` | Screen 2 model wiring: release, re-release, trace bounds, friction |
 | `tests/memory-leak.test.ts` | WeakRef + `forceGC` dispose regression (fleet pattern) |
 | `tests/fuzz/fuzz.spec.ts` | Optional Playwright fuzz smoke via joist `?fuzz` |
 | `playwright.config.ts` | Chromium project + Vite webServer for fuzz |

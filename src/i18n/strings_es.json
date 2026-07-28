@@ -19,7 +19,20 @@
     "formulaHint": "Ω = τ / (I ω)  —  más giro → precesión más lenta"
   },
   "nutation": {
-    "placeholder": "Pantalla de nutación — próximamente."
+    "sceneTitle": "Trompo pesado — trayectoria de la punta del eje",
+    "graphTitle": "Inclinación θ vs. tiempo",
+    "spinRate": "Giro propio ω₃ (Hz)",
+    "initialTilt": "Inclinación de suelta θ₀ (°)",
+    "releaseMode": "Soltar el trompo",
+    "releaseCusp": "En reposo — cúspides",
+    "releaseLoop": "Empujado hacia atrás — bucles",
+    "releaseSmooth": "Empujado hacia adelante — ondas",
+    "releaseSteady": "A la tasa estable — sin bamboleo",
+    "friction": "Fricción (el trompo se frena)",
+    "releaseAgain": "Soltar de nuevo",
+    "readoutsTitle": "Mediciones",
+    "belowCritical": "El giro está por debajo del valor crítico — no existe precesión estable en esta inclinación, así que el trompo debe nutar.",
+    "insight": "Un trompo real se suelta, no se lanza con la tasa exacta: el eje cae, gana precesión y vuelve a subir."
   },
   "torqueFree": {
     "placeholder": "Volteo sin par — próximamente."
@@ -41,11 +54,18 @@
     },
     "nutation": {
       "screenSummary": {
-        "playArea": "Próximamente: nutación.",
-        "controlArea": "Controles próximamente.",
-        "interactionHint": "En construcción."
+        "playArea": "El área de juego muestra un trompo pesado sobre su pivote, la trayectoria trazada por la punta del eje, los dos círculos que delimitan la banda de nutación y una gráfica de la inclinación frente al tiempo.",
+        "controlArea": "El área de control permite fijar el giro y la inclinación de suelta, elegir cómo se suelta el trompo, activar la fricción y volver a soltarlo. Las lecturas dan la banda de nutación, las frecuencias y el giro crítico.",
+        "interactionHint": "Suelte el trompo en reposo para ver las cúspides y luego pruebe a empujarlo hacia atrás o hacia adelante."
       },
-      "currentDetails": "Marcador de posición de nutación."
+      "currentDetailsPattern": "El eje está inclinado {{tilt}} grados, nutando entre {{thetaMin}} y {{thetaMax}} grados. La precesión media es {{precessionHz}} hertz y la nutación {{nutationHz}} hertz.",
+      "controls": {
+        "spinRate": "Velocidad de giro propio",
+        "initialTilt": "Inclinación de suelta",
+        "releaseMode": "Modo de suelta",
+        "friction": "Fricción",
+        "releaseAgain": "Soltar el trompo de nuevo"
+      }
     },
     "torqueFree": {
       "screenSummary": {

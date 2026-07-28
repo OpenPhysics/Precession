@@ -19,7 +19,20 @@
     "formulaHint": "Ω = τ / (I ω)  —  plus de spin → précession plus lente"
   },
   "nutation": {
-    "placeholder": "Écran nutation — bientôt disponible."
+    "sceneTitle": "Toupie pesante — trajectoire du bout de l'axe",
+    "graphTitle": "Inclinaison θ vs. temps",
+    "spinRate": "Rotation propre ω₃ (Hz)",
+    "initialTilt": "Inclinaison au lâcher θ₀ (°)",
+    "releaseMode": "Lâcher la toupie",
+    "releaseCusp": "Au repos — points de rebroussement",
+    "releaseLoop": "Poussée en arrière — boucles",
+    "releaseSmooth": "Poussée en avant — ondulations",
+    "releaseSteady": "À la vitesse régulière — sans oscillation",
+    "friction": "Frottement (la toupie ralentit)",
+    "releaseAgain": "Relâcher",
+    "readoutsTitle": "Mesures",
+    "belowCritical": "Rotation propre sous la valeur critique — aucune précession régulière n'existe à cette inclinaison, la toupie doit donc nuter.",
+    "insight": "Une vraie toupie est lâchée, pas lancée à la bonne vitesse : l'axe descend, gagne de la précession, puis remonte."
   },
   "torqueFree": {
     "placeholder": "Rotation libre — bientôt disponible."
@@ -41,11 +54,18 @@
     },
     "nutation": {
       "screenSummary": {
-        "playArea": "Bientôt : nutation.",
-        "controlArea": "Contrôles à venir.",
-        "interactionHint": "En construction."
+        "playArea": "La zone de jeu montre une toupie pesante sur son pivot, la trajectoire tracée par le bout de l'axe, les deux cercles délimitant la bande de nutation et un graphique de l'inclinaison en fonction du temps.",
+        "controlArea": "La zone de contrôle permet de régler la rotation propre et l'inclinaison au lâcher, de choisir le mode de lâcher, d'activer le frottement et de relâcher la toupie. Les affichages donnent la bande de nutation, les fréquences et la rotation critique.",
+        "interactionHint": "Lâchez la toupie au repos pour voir les points de rebroussement, puis essayez de la pousser en arrière ou en avant."
       },
-      "currentDetails": "Écran nutation provisoire."
+      "currentDetailsPattern": "L'axe est incliné de {{tilt}} degrés, nutant entre {{thetaMin}} et {{thetaMax}} degrés. Précession moyenne {{precessionHz}} hertz, nutation {{nutationHz}} hertz.",
+      "controls": {
+        "spinRate": "Vitesse de rotation propre",
+        "initialTilt": "Inclinaison au lâcher",
+        "releaseMode": "Mode de lâcher",
+        "friction": "Frottement",
+        "releaseAgain": "Relâcher la toupie"
+      }
     },
     "torqueFree": {
       "screenSummary": {

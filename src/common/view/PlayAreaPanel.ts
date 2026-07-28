@@ -8,8 +8,8 @@ import type { TReadOnlyProperty } from "scenerystack/axon";
 import type { Node } from "scenerystack/scenery";
 import { Text, VBox } from "scenerystack/scenery";
 import { PhetFont } from "scenerystack/scenery-phet";
-import { SimPanel } from "../../common/SimPanel.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
+import { SimPanel } from "../SimPanel.js";
 
 const TITLE_FONT = new PhetFont({ size: 13, weight: "bold" });
 
