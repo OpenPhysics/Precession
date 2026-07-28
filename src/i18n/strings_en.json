@@ -19,7 +19,20 @@
     "formulaHint": "Ω = τ / (I ω)  —  faster spin → slower precession"
   },
   "nutation": {
-    "placeholder": "Nutation screen — release from a tilted angle to see wobble on top of steady precession. Coming soon."
+    "sceneTitle": "Heavy top — path traced by the axle tip",
+    "graphTitle": "Tilt θ vs. time",
+    "spinRate": "Spin ω₃ (Hz)",
+    "initialTilt": "Release tilt θ₀ (°)",
+    "releaseMode": "Release the top",
+    "releaseCusp": "From rest — cusps",
+    "releaseLoop": "Pushed backward — loops",
+    "releaseSmooth": "Pushed forward — waves",
+    "releaseSteady": "At the steady rate — no wobble",
+    "friction": "Friction (top spins down)",
+    "releaseAgain": "Release again",
+    "readoutsTitle": "Measurements",
+    "belowCritical": "Spin is below the critical value — no steady precession exists at this tilt, so the top must nutate.",
+    "insight": "Real tops are released, not handed the answer: the axis dips, picks up precession, and rises again."
   },
   "torqueFree": {
     "placeholder": "Torque-free tumbling — asymmetric rigid body via Euler's equations. Coming soon."
@@ -41,11 +54,18 @@
     },
     "nutation": {
       "screenSummary": {
-        "playArea": "The play area will show nutation — wobble on top of steady precession when the top is released off-equilibrium.",
-        "controlArea": "Controls for initial tilt and nutation kick will appear here.",
-        "interactionHint": "This screen is under construction."
+        "playArea": "The play area shows a heavy top pivoted at its base, the path traced by its axle tip, the two circles bounding the nutation band, and a graph of the tilt angle versus time.",
+        "controlArea": "The control area lets you set the spin rate and release tilt, choose how the top is released, turn friction on or off, and release the top again. Readouts give the nutation band, nutation and precession frequencies, and the critical spin.",
+        "interactionHint": "Release the top from rest to see cusps, then try pushing it backward or forward and compare the traced paths."
       },
-      "currentDetails": "Nutation screen placeholder."
+      "currentDetailsPattern": "The axle is tilted {{tilt}} degrees from vertical, nutating between {{thetaMin}} and {{thetaMax}} degrees. Mean precession is {{precessionHz}} hertz and nutation is {{nutationHz}} hertz.",
+      "controls": {
+        "spinRate": "Spin rate about the axle",
+        "initialTilt": "Release tilt from vertical",
+        "releaseMode": "How the top is released",
+        "friction": "Friction",
+        "releaseAgain": "Release the top again"
+      }
     },
     "torqueFree": {
       "screenSummary": {

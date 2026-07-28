@@ -11,12 +11,12 @@ import {
   FLAT_RESET_ALL_BUTTON_OPTIONS,
   TIME_CONTROL_SPEED_RADIO_OPTIONS,
 } from "../../common/SimButtonOptions.js";
+import { PlayAreaPanel } from "../../common/view/PlayAreaPanel.js";
 import { StringManager } from "../../i18n/StringManager.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import { SCREEN_VIEW_MARGIN } from "../../RigidBodyPrecessionConstants.js";
 import type { SteadyPrecessionModel } from "../model/SteadyPrecessionModel.js";
 import { GyroscopeSceneNode } from "./GyroscopeSceneNode.js";
-import { PlayAreaPanel } from "./PlayAreaPanel.js";
 import { PrecessionAngleGraphNode } from "./PrecessionAngleGraphNode.js";
 import { SteadyPrecessionControlPanel } from "./SteadyPrecessionControlPanel.js";
 import { SteadyPrecessionScreenSummaryContent } from "./SteadyPrecessionScreenSummaryContent.js";

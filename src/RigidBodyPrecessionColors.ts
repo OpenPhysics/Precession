@@ -153,6 +153,30 @@ const RigidBodyPrecessionColors = {
     projector: new Color(153, 153, 153, 0.35),
   }),
 
+  /** Path traced by the axle tip on the nutation screen. */
+  tipTraceColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "tipTrace", {
+    default: "#ffb74d",
+    projector: "#e65100",
+  }),
+
+  /** Turning-point circles bounding the nutation band. */
+  nutationBandColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "nutationBand", {
+    default: "#ce93d8",
+    projector: "#6a1b9a",
+  }),
+
+  /** Face of the gyroscope wheel on the nutation screen (translucent so the trace shows through). */
+  wheelFillColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "wheelFill", {
+    default: new Color(79, 195, 247, 0.55),
+    projector: new Color(2, 119, 189, 0.4),
+  }),
+
+  /** Readout color for a state that is unstable or out of range (spin below critical). */
+  warningColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "warning", {
+    default: "#ff8a65",
+    projector: "#bf360c",
+  }),
+
   /** Top-view inset card fill (graph-background hue @ 70%). */
   sceneInsetCardColorProperty: new ProfileColorProperty(RigidBodyPrecessionNamespace, "sceneInsetCard", {
     default: new Color(15, 26, 46, 0.7),
