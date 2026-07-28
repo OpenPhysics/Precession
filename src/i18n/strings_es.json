@@ -38,7 +38,11 @@
     "readoutsTitle": "Mediciones",
     "conservedNote": "E y p_φ se mantienen constantes mientras la fricción está apagada.",
     "belowCritical": "El giro está por debajo del valor crítico — no existe precesión estable en esta inclinación, así que el trompo debe nutar.",
-    "insight": "Un trompo real se suelta, no se lanza con la tasa exacta: el eje cae, gana precesión y vuelve a subir."
+    "insight": "Un trompo real se suelta, no se lanza con la tasa exacta: el eje cae, gana precesión y vuelve a subir.",
+    "sleepLabel": "Si se pone vertical",
+    "sleeps": "duerme",
+    "topples": "se cae",
+    "sleepNote": "Baje la inclinación de suelta a su mínimo para comprobar esa predicción."
   },
   "torqueFree": {
     "sceneTitle": "Bloque volteando — sin par alguno",
@@ -53,7 +57,12 @@
     "stable": "estable",
     "unstable": "inestable",
     "stabilityRule": "Un cuerpo libre gira de forma estable en torno a su eje de inercia máxima o mínima. En torno al intermedio, la menor oscilación crece hasta que el cuerpo voltea — y sigue volteando.",
-    "conservedNote": "T y |L| son exactamente constantes, volteos incluidos. Nada empuja al bloque."
+    "conservedNote": "T y |L| son exactamente constantes, volteos incluidos. Nada empuja al bloque.",
+    "axisLabel": "eje",
+    "growthLabel": "crecimiento",
+    "flipsLabel": "volteos",
+    "flipPeriodLabel": "por volteo",
+    "noFlipsYet": "ninguno aún"
   },
   "a11y": {
     "steadyPrecession": {
@@ -74,7 +83,7 @@
     "nutation": {
       "screenSummary": {
         "playArea": "El área de juego muestra un trompo pesado sobre su pivote, la trayectoria trazada por la punta del eje, los dos círculos que delimitan la banda de nutación y una gráfica de la inclinación frente al tiempo.",
-        "controlArea": "El área de control permite fijar el giro y la inclinación de suelta, elegir cómo se suelta el trompo, activar la fricción y volver a soltarlo. Las lecturas dan la banda de nutación, las frecuencias y el giro crítico.",
+        "controlArea": "El área de control permite fijar la velocidad de giro y la inclinación de suelta, elegir cómo se suelta el trompo, activar o desactivar la fricción y volver a soltarlo. Las lecturas dan la banda de nutación, las frecuencias de nutación y precesión, el giro crítico y si un trompo girando así dormiría en vertical.",
         "interactionHint": "Suelte el trompo en reposo para ver las cúspides y luego pruebe a empujarlo hacia atrás o hacia adelante."
       },
       "currentDetailsPattern": "El eje está inclinado {{tilt}} grados, nutando entre {{thetaMin}} y {{thetaMax}} grados. La precesión media es {{precessionHz}} hertz y la nutación {{nutationHz}} hertz.",
@@ -89,10 +98,10 @@
     "torqueFree": {
       "screenSummary": {
         "playArea": "El área de juego muestra un bloque rectangular volteando sin par, una flecha fija para el momento angular, una flecha móvil para la velocidad angular con su rastro, y una gráfica de las tres componentes de giro frente al tiempo.",
-        "controlArea": "El área de control permite elegir el eje principal de giro, fijar la velocidad de giro inicial y activar o desactivar la oscilación de lanzamiento. Las lecturas dan la estabilidad del eje elegido, la tasa de crecimiento de una perturbación y las dos cantidades conservadas.",
+        "controlArea": "El área de control permite elegir en torno a qué eje principal girar el bloque, fijar la velocidad de lanzamiento y activar o desactivar la oscilación inicial. Las lecturas dan la estabilidad del eje elegido, la tasa de crecimiento de una perturbación, el número de volteos y el tiempo medio entre ellos, y las dos cantidades conservadas.",
         "interactionHint": "Gire el bloque en torno a su eje de inercia máxima y vea que se mantiene estable, luego cambie al eje intermedio y vea cómo voltea."
       },
-      "currentDetailsPattern": "Las componentes de giro son {{omega1}}, {{omega2}} y {{omega3}} radianes por segundo en torno a los ejes de inercia máxima, intermedia y mínima.",
+      "currentDetailsPattern": "Las componentes de giro son {{omega1}}, {{omega2}} y {{omega3}} radianes por segundo en torno a los ejes de inercia máxima, intermedia y mínima. Volteos hasta ahora: {{flips}}.",
       "controls": {
         "spinAxis": "Eje de giro del bloque",
         "spinRate": "Velocidad de giro inicial",

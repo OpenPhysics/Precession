@@ -3,7 +3,7 @@
  */
 
 import { HBox, Node, Rectangle, VBox } from "scenerystack/scenery";
-import { ResetAllButton, TimeControlNode } from "scenerystack/scenery-phet";
+import { ResetAllButton, TimeControlNode, TimeSpeed } from "scenerystack/scenery-phet";
 import type { ScreenViewOptions } from "scenerystack/sim";
 import { ScreenView } from "scenerystack/sim";
 import {
@@ -63,11 +63,14 @@ export class SteadyPrecessionScreenView extends ScreenView {
 
     const timeControl = new TimeControlNode(model.timer.isPlayingProperty, {
       ...TIME_CONTROL_SPEED_RADIO_OPTIONS,
+      timeSpeedProperty: model.timeSpeedProperty,
+      timeSpeeds: [TimeSpeed.NORMAL, TimeSpeed.SLOW],
       playPauseStepButtonOptions: {
         ...FLAT_PLAY_PAUSE_STEP_BUTTON_OPTIONS,
         stepForwardButtonOptions: {
           ...FLAT_PLAY_PAUSE_STEP_BUTTON_OPTIONS.stepForwardButtonOptions,
-          listener: () => model.step(1 / 60),
+          // stepOnce, not step: step-forward has to work while paused.
+          listener: () => model.stepOnce(1 / 60),
         },
       },
       left: SCREEN_VIEW_MARGIN,

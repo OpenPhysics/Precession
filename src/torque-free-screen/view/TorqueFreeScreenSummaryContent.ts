@@ -19,6 +19,9 @@ export class TorqueFreeScreenSummaryContent extends ScreenSummaryContent {
       omega1: new DerivedProperty([model.omegaProperty], (omega) => toFixed(omega.x, 2)),
       omega2: new DerivedProperty([model.omegaProperty], (omega) => toFixed(omega.y, 2)),
       omega3: new DerivedProperty([model.omegaProperty], (omega) => toFixed(omega.z, 2)),
+      // The flip is the whole point of this screen and is otherwise purely visual,
+      // so the running count belongs in the live details rather than only on screen.
+      flips: new DerivedProperty([model.flipCountProperty], (count) => `${count}`),
     });
 
     super({

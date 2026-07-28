@@ -17,8 +17,10 @@ import { BooleanProperty, DerivedProperty, EnumerationProperty, NumberProperty, 
 import { Vector3 } from "scenerystack/dot";
 import type { TModel } from "scenerystack/joist";
 import { TimeSpeed } from "scenerystack/scenery-phet";
+import { FlipTracker } from "../../common/rigid-body/FlipTracker.js";
 import {
   angularMomentumMagnitude,
+  axisMomentumAlignment,
   bodyAngularMomentum,
   boxInertia,
   IDENTITY_ROTATION,
@@ -99,6 +101,13 @@ export class TorqueFreeModel implements TModel {
   public readonly axisStableProperty;
   /** e-folding rate of a disturbance about the launch axis (1/s); 0 when stable. */
   public readonly growthRateProperty;
+  /**
+   * Flips counted since launch. The stability readout is a prediction; this is the
+   * measurement that confirms it, and it stays at 0 forever about a stable axis.
+   */
+  public readonly flipCountProperty = new NumberProperty(0);
+  /** Mean seconds between flips (0 until two have been counted). */
+  public readonly flipPeriodProperty = new NumberProperty(0);
 
   public readonly inertia = boxInertia(
     TUMBLE_BOX_MASS_KG,
@@ -109,6 +118,7 @@ export class TorqueFreeModel implements TModel {
 
   private history: OmegaSample[] = [];
   private sampleAccumulator = 0;
+  private readonly flipTracker = new FlipTracker();
 
   public constructor() {
     this.energyProperty = new DerivedProperty([this.omegaProperty], (omega) => kineticEnergy(this.inertia, omega));
@@ -147,6 +157,14 @@ export class TorqueFreeModel implements TModel {
     return this.history;
   }
 
+  /**
+   * The launch axis's share of the angular momentum, +1 at launch and −1 once the
+   * block has turned over. This is what the flip counter watches.
+   */
+  public getLaunchAxisAlignment(): number {
+    return axisMomentumAlignment(this.inertia, this.omegaProperty.value, AXIS_INDEX[this.spinAxisProperty.value]);
+  }
+
   /** Re-launch from the current parameters and clear the history. */
   public launch(): void {
     const rate = this.spinRateProperty.value;
@@ -167,6 +185,12 @@ export class TorqueFreeModel implements TModel {
     this.history = [];
     this.sampleAccumulator = 0;
     this.timer.timeProperty.value = 0;
+
+    this.flipTracker.reset();
+    this.flipCountProperty.value = 0;
+    this.flipPeriodProperty.value = 0;
+    // Seed the tracker with the launch alignment, so the very first reversal counts.
+    this.flipTracker.update(0, this.getLaunchAxisAlignment());
   }
 
   public step(dt: number): void {
@@ -198,6 +222,12 @@ export class TorqueFreeModel implements TModel {
 
     // Set ω last: the readouts derive from it and read the history.
     this.omegaProperty.value = next.omega;
+
+    if (this.flipTracker.update(this.timer.timeProperty.value, this.getLaunchAxisAlignment())) {
+      const statistics = this.flipTracker.getStatistics();
+      this.flipCountProperty.value = statistics.count;
+      this.flipPeriodProperty.value = statistics.meanInterval;
+    }
   }
 
   public reset(): void {
@@ -215,6 +245,8 @@ export class TorqueFreeModel implements TModel {
     this.spinAxisProperty.dispose();
     this.spinRateProperty.dispose();
     this.nudgeEnabledProperty.dispose();
+    this.flipCountProperty.dispose();
+    this.flipPeriodProperty.dispose();
     this.omegaProperty.dispose();
     this.orientationProperty.dispose();
     this.energyProperty.dispose();

@@ -6,8 +6,8 @@
  * Every slider here is an initial condition, so moving one re-releases the top.
  */
 
-import { DerivedProperty, NumberProperty, type TReadOnlyProperty } from "scenerystack/axon";
-import { clamp, Dimension2, Range, toFixed } from "scenerystack/dot";
+import { DerivedProperty, type NumberProperty, type TReadOnlyProperty } from "scenerystack/axon";
+import { Dimension2, Range, toFixed } from "scenerystack/dot";
 import { type Color, HBox, Line, type Node, RichText, Text, VBox } from "scenerystack/scenery";
 import { NumberControl, PhetFont } from "scenerystack/scenery-phet";
 import { Checkbox, ComboBox, RectangularPushButton } from "scenerystack/sun";
@@ -18,6 +18,7 @@ import {
   SIM_COMBO_BOX_OPTIONS,
 } from "../../common/SimButtonOptions.js";
 import { SimPanel } from "../../common/SimPanel.js";
+import { createUnitProxy } from "../../common/view/UnitProxyProperty.js";
 import { StringManager } from "../../i18n/StringManager.js";
 import RigidBodyPrecessionColors from "../../RigidBodyPrecessionColors.js";
 import { NUTATION_PANEL_WIDTH, NUTATION_SPIN_RANGE, NUTATION_TILT_RANGE } from "../../RigidBodyPrecessionConstants.js";
@@ -31,26 +32,6 @@ const SLIDER_WIDTH = NUTATION_PANEL_WIDTH - 56;
 
 const HZ_PER_RAD_S = 1 / (2 * Math.PI);
 const DEGREES_PER_RADIAN = 180 / Math.PI;
-
-/**
- * A display-unit proxy for a model property (rad/s → Hz, rad → degrees). Edits flow
- * both ways; the guard keeps the model's own resets from echoing back as user edits.
- */
-function createUnitProxy(property: NumberProperty, scale: number, range: Range, units: "Hz" | "°"): NumberProperty {
-  const proxy = new NumberProperty(clamp(property.value * scale, range.min, range.max), { units });
-  let suppress = false;
-  property.link((value) => {
-    if (!suppress) {
-      proxy.value = clamp(value * scale, range.min, range.max);
-    }
-  });
-  proxy.lazyLink((value) => {
-    suppress = true;
-    property.value = value / scale;
-    suppress = false;
-  });
-  return proxy;
-}
 
 function createNumberControl(
   title: TReadOnlyProperty<string>,
@@ -78,7 +59,7 @@ function createNumberControl(
 }
 
 function readoutRow(
-  label: string,
+  label: string | TReadOnlyProperty<string>,
   valueProperty: TReadOnlyProperty<string>,
   colorProperty: TReadOnlyProperty<Color>,
 ): Node {
@@ -205,6 +186,19 @@ export class NutationControlPanel extends SimPanel {
         : RigidBodyPrecessionColors.warningColorProperty.value,
     );
 
+    // A sleeping top is the one classic regime the tilt slider can now actually reach:
+    // wind θ₀ down to its minimum and a top above the critical spin holds itself
+    // upright, while one below it flops straight over to the mechanical stop.
+    const sleepValueProperty = new DerivedProperty(
+      [model.sleepingStableProperty, strings.sleepsStringProperty, strings.topplesStringProperty],
+      (sleeps, sleepsText, topplesText) => (sleeps ? sleepsText : topplesText),
+    );
+    const sleepColorProperty = new DerivedProperty([model.sleepingStableProperty], (sleeps) =>
+      sleeps
+        ? RigidBodyPrecessionColors.precessionColorProperty.value
+        : RigidBodyPrecessionColors.warningColorProperty.value,
+    );
+
     // The two constants of the motion. With friction off they hold to many decimal
     // places for as long as the sim runs, which is the most convincing evidence a
     // student can get that the integrator is solving the real Lagrangian; switch
@@ -230,6 +224,13 @@ export class NutationControlPanel extends SimPanel {
       fill: RigidBodyPrecessionColors.warningColorProperty,
       lineWrap: NUTATION_PANEL_WIDTH - 40,
       visibleProperty: new DerivedProperty([model.aboveCriticalSpinProperty], (above) => !above),
+    });
+
+    const sleepNote = new RichText(strings.sleepNoteStringProperty, {
+      font: new PhetFont({ size: 10 }),
+      fill: RigidBodyPrecessionColors.textColorProperty,
+      lineWrap: NUTATION_PANEL_WIDTH - 40,
+      opacity: 0.7,
     });
 
     const conservedNote = new RichText(strings.conservedNoteStringProperty, {
@@ -263,8 +264,10 @@ export class NutationControlPanel extends SimPanel {
         readoutRow("f_nut", nutationValueProperty, RigidBodyPrecessionColors.tipTraceColorProperty),
         readoutRow("Ω_mean", precessionValueProperty, RigidBodyPrecessionColors.precessionColorProperty),
         readoutRow("ω₃ min", criticalValueProperty, criticalColorProperty),
+        readoutRow(strings.sleepLabelStringProperty, sleepValueProperty, sleepColorProperty),
         readoutRow("E", energyValueProperty, RigidBodyPrecessionColors.textColorProperty),
         readoutRow("p_φ", momentumValueProperty, RigidBodyPrecessionColors.textColorProperty),
+        sleepNote,
         conservedNote,
         criticalWarning,
         insight,

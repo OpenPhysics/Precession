@@ -8,6 +8,8 @@ import { NutationModel } from "../src/nutation-screen/model/NutationModel.js";
 import {
   DEFAULT_NUTATION_SPIN_RAD_S,
   DEFAULT_NUTATION_TILT_RAD,
+  NUTATION_MAX_TILT_RAD,
+  NUTATION_TILT_RANGE,
   NUTATION_TRACE_CAPACITY,
 } from "../src/RigidBodyPrecessionConstants.js";
 
@@ -17,6 +19,70 @@ function run(model: NutationModel, seconds: number): void {
     model.step(1 / 60);
   }
 }
+
+/**
+ * The sleeping top. Released near the vertical, a top spun above the critical rate
+ * holds itself upright and one spun below it topples all the way to the mechanical
+ * stop — so `sleepingStableProperty` is a prediction the integrator either confirms
+ * or refutes, and these tests are what hold the two together.
+ */
+describe("NutationModel — sleeping top", () => {
+  function releaseNearVertical(spin: number): NutationModel {
+    const model = new NutationModel();
+    model.initialTiltProperty.value = NUTATION_TILT_RANGE.min;
+    model.spinRateProperty.value = spin;
+    return model;
+  }
+
+  it("reaches a near-vertical release tilt", () => {
+    // Small enough to be an upright top, but off the Euler-angle singularity.
+    expect(NUTATION_TILT_RANGE.min).toBeGreaterThan(0);
+    expect(NUTATION_TILT_RANGE.min).toBeLessThan((5 * Math.PI) / 180);
+  });
+
+  it("stays upright when spun above the critical rate", () => {
+    const model = releaseNearVertical(12);
+    expect(model.sleepingStableProperty.value).toBe(true);
+
+    let maxTilt = model.thetaProperty.value;
+    for (let i = 0; i < 60 * 6; i++) {
+      model.step(1 / 60);
+      maxTilt = Math.max(maxTilt, model.thetaProperty.value);
+    }
+
+    // Never wanders more than a few degrees from where it was released.
+    expect(maxTilt).toBeLessThan((10 * Math.PI) / 180);
+    model.dispose();
+  });
+
+  it("topples to the mechanical stop when spun below the critical rate", () => {
+    const model = releaseNearVertical(3);
+    expect(model.sleepingStableProperty.value).toBe(false);
+
+    let maxTilt = model.thetaProperty.value;
+    for (let i = 0; i < 60 * 6; i++) {
+      model.step(1 / 60);
+      maxTilt = Math.max(maxTilt, model.thetaProperty.value);
+    }
+
+    // It falls the whole way onto the stop. (It does not *stay* there: the contact is
+    // inelastic in θ̇ only, so the axis is free to swing back up off the stop.)
+    expect(maxTilt).toBeCloseTo(NUTATION_MAX_TILT_RAD, 5);
+    model.dispose();
+  });
+
+  it("agrees with the criticalSpinRate threshold at the vertical", () => {
+    const model = new NutationModel();
+    const critical = criticalSpinRate(model.getParameters(), 0);
+
+    model.spinRateProperty.value = critical * 1.05;
+    expect(model.sleepingStableProperty.value).toBe(true);
+
+    model.spinRateProperty.value = critical * 0.95;
+    expect(model.sleepingStableProperty.value).toBe(false);
+    model.dispose();
+  });
+});
 
 describe("NutationModel", () => {
   it("starts released at the initial tilt with the clock running", () => {

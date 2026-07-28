@@ -200,6 +200,25 @@ export function angularMomentumMagnitude(inertia: InertiaTensor, omega: Vector3)
 }
 
 /**
+ * Cosine of the angle between L and the given principal axis, i.e. that axis's share
+ * of the angular momentum: (Iᵢ ωᵢ) / |L|.
+ *
+ * Because L is fixed in space, this is the cleanest signature of a flip available
+ * without touching the orientation. A body launched about axis i starts at +1 and,
+ * if that axis is the intermediate one, swings to −1 and back forever; about a stable
+ * axis it stays pinned near +1. Returns 0 for a body that is not rotating.
+ */
+export function axisMomentumAlignment(inertia: InertiaTensor, omega: Vector3, axis: 0 | 1 | 2): number {
+  const momentum = bodyAngularMomentum(inertia, omega);
+  const magnitude = momentum.magnitude;
+  if (magnitude < 1e-12) {
+    return 0;
+  }
+  const components = [momentum.x, momentum.y, momentum.z];
+  return (components[axis] as number) / magnitude;
+}
+
+/**
  * Whether a spin about the given principal axis is stable.
  *
  * Linearizing Euler's equations about pure rotation ωᵢ gives growth rate² ∝

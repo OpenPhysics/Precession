@@ -14,8 +14,14 @@
  *     public readonly timer = new TimeModel();
  *
  *     public step( dt: number ): void {
- *       this.timer.step( dt );
- *       // use this.timer.timeProperty.value for physics calculations
+ *       if ( !this.timer.isPlayingProperty.value ) { return; }
+ *       this.stepOnce( dt );
+ *     }
+ *
+ *     // Advances regardless of play/pause, so step-forward can drive it.
+ *     public stepOnce( dt: number ): void {
+ *       this.timer.timeProperty.value += dt;
+ *       // integrate the physics by dt …
  *     }
  *
  *     public reset(): void {
@@ -24,16 +30,24 @@
  *     }
  *   }
  *
+ *   Note what that shape buys you. `timer.step()` alone stops the *clock* when
+ *   paused but not the model: a step() that keeps integrating below it leaves the
+ *   sim animating through a pause, with every sample stamped at the same frozen
+ *   time. Gate the whole of step() on isPlayingProperty, and keep the clock and the
+ *   physics moving together in stepOnce().
+ *
  * ── View wiring ───────────────────────────────────────────────────────────────
  *
- *   SceneryStack ships a TimeControlNode that binds directly to isPlayingProperty:
+ *   SceneryStack ships a TimeControlNode that binds directly to isPlayingProperty.
+ *   Point step-forward at stepOnce — it has to work while paused, which is the one
+ *   moment step() deliberately does nothing:
  *
  *   import { TimeControlNode } from "scenerystack/scenery-phet";
  *
  *   const timeControl = new TimeControlNode( model.timer.isPlayingProperty, {
  *     playPauseStepButtonOptions: {
  *       stepForwardButtonOptions: {
- *         listener: () => model.step( 1 / 60 ),
+ *         listener: () => model.stepOnce( 1 / 60 ),
  *       },
  *     },
  *   });
