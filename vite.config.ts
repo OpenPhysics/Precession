@@ -154,8 +154,9 @@ export default defineConfig(({ mode }) => {
             manifest: {
               name: "Rigid Body Precession",
               // biome-ignore lint/style/useNamingConvention: Web App Manifest spec requires snake_case keys
-              short_name: "SimTemplate",
-              description: "A single-screen SceneryStack simulation template",
+              short_name: "Precession",
+              description:
+                "Rigid-body dynamics of a spinning gyroscope: steady precession, nutation, and torque-free tumbling",
               // biome-ignore lint/style/useNamingConvention: Web App Manifest spec requires snake_case keys
               theme_color: "#1a1a2e",
               // biome-ignore lint/style/useNamingConvention: Web App Manifest spec requires snake_case keys
