@@ -19,20 +19,23 @@ export class RigidBodyPrecessionPreferencesNode extends VBox {
   public constructor(preferencesModel: RigidBodyPrecessionPreferencesModel, tandem?: Tandem) {
     const prefStrings = StringManager.getInstance().getPreferences();
 
+    // The Preferences dialog is always white, so use the dark "light control surface"
+    // colors (readable on white in both default and projector profiles), not textColorProperty
+    // (which is near-white in default mode and would be invisible on the white dialog).
     const header = new Text(prefStrings.titleStringProperty, {
       font: new PhetFont({ size: 18, weight: "bold" }),
-      fill: RigidBodyPrecessionColors.textColorProperty,
+      fill: RigidBodyPrecessionColors.controlSurfaceTextColorProperty,
     });
 
     const exampleToggleCheckbox = new Checkbox(
       preferencesModel.exampleToggleProperty,
       new Text(prefStrings.exampleToggleStringProperty, {
         font: new PhetFont(14),
-        fill: RigidBodyPrecessionColors.textColorProperty,
+        fill: RigidBodyPrecessionColors.controlSurfaceTextColorProperty,
       }),
       {
-        checkboxColor: RigidBodyPrecessionColors.textColorProperty,
-        checkboxColorBackground: RigidBodyPrecessionColors.panelBackgroundColorProperty,
+        checkboxColor: RigidBodyPrecessionColors.controlSurfaceTextColorProperty,
+        checkboxColorBackground: RigidBodyPrecessionColors.controlSurfaceColorProperty,
         spacing: 8,
         ...(tandem && { tandem: tandem.createTandem("exampleToggleCheckbox") }),
       },
