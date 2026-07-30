@@ -3,19 +3,22 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "A SceneryStack single-screen simulation template.",
+  "description": "Rigid-body dynamics of a spinning gyroscope: steady precession under gravity, nutation, and torque-free tumbling.",
   "license": "AGPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenPhysics/TemplateSingleSim.git"
+    "url": "https://github.com/OpenPhysics/Precession.git"
   },
   "keywords": [
-    "template",
+    "precession",
     "simulation",
     "SceneryStack",
     "interactive",
     "physics",
     "education",
+    "gyroscope",
+    "rigid body",
+    "angular momentum",
     "pwa"
   ],
   "scripts": {
