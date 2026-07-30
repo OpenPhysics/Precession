@@ -5,7 +5,7 @@ Sim-specific context for AI assistants. General SceneryStack guidance: [OpenPhys
 ## Project
 
 Rigid-body dynamics of a spinning gyroscope across three screens — **Steady Precession**,
-**Nutation**, and **Torque-Free Tumbling**. Forked from `TemplateSingleSim`, it keeps that
+**Nutation**, and **Torque-Free Tumbling**. Forked from `SceneryStackTemplate`, it keeps that
 template's **canonical accessibility** wiring. For multi-screen sims, see
 [`doc/multi-screen.md`](doc/multi-screen.md).
 
