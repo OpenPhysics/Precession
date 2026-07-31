@@ -99,7 +99,12 @@ export class TorqueFreeControlPanel extends SimPanel {
         fill: RigidBodyPrecessionColors.textColorProperty,
         maxWidth: TORQUE_FREE_PANEL_WIDTH - 60,
       }),
-      { accessibleName: a11y.controls.nudgeStringProperty, boxWidth: 18 },
+      {
+        checkboxColor: RigidBodyPrecessionColors.textColorProperty,
+        checkboxColorBackground: RigidBodyPrecessionColors.panelBackgroundColorProperty,
+        accessibleName: a11y.controls.nudgeStringProperty,
+        boxWidth: 18,
+      },
     );
 
     const separator = new Line(0, 0, TORQUE_FREE_PANEL_WIDTH - 40, 0, {

@@ -150,6 +150,8 @@ export class NutationControlPanel extends SimPanel {
         maxWidth: NUTATION_PANEL_WIDTH - 60,
       }),
       {
+        checkboxColor: RigidBodyPrecessionColors.textColorProperty,
+        checkboxColorBackground: RigidBodyPrecessionColors.panelBackgroundColorProperty,
         accessibleName: a11y.controls.frictionStringProperty,
         boxWidth: 18,
       },

@@ -129,6 +129,8 @@ export class SteadyPrecessionControlPanel extends SimPanel {
         maxWidth: STEADY_PRECESSION_PANEL_WIDTH - 60,
       }),
       {
+        checkboxColor: RigidBodyPrecessionColors.textColorProperty,
+        checkboxColorBackground: RigidBodyPrecessionColors.panelBackgroundColorProperty,
         accessibleName: a11y.controls.pivotAtComStringProperty,
         boxWidth: 18,
       },
