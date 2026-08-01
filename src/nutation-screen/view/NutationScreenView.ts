@@ -5,10 +5,10 @@
  * the launch controls on the right.
  */
 
+import { type EmptySelfOptions, optionize } from "scenerystack/phet-core";
 import { HBox, Node, Rectangle, VBox } from "scenerystack/scenery";
 import { ResetAllButton, TimeControlNode, TimeSpeed } from "scenerystack/scenery-phet";
-import type { ScreenViewOptions } from "scenerystack/sim";
-import { ScreenView } from "scenerystack/sim";
+import { ScreenView, type ScreenViewOptions } from "scenerystack/sim";
 import {
   FLAT_PLAY_PAUSE_STEP_BUTTON_OPTIONS,
   FLAT_RESET_ALL_BUTTON_OPTIONS,
@@ -27,12 +27,17 @@ import { TopSceneNode } from "./TopSceneNode.js";
 
 const BOTTOM_CHROME_HEIGHT = 56;
 
+export type NutationScreenViewOptions = ScreenViewOptions;
+
 export class NutationScreenView extends ScreenView {
-  public constructor(model: NutationModel, options?: ScreenViewOptions) {
-    super({
-      screenSummaryContent: new NutationScreenSummaryContent(model),
-      ...options,
-    });
+  public constructor(model: NutationModel, providedOptions?: NutationScreenViewOptions) {
+    const options = optionize<NutationScreenViewOptions, EmptySelfOptions, ScreenViewOptions>()(
+      {
+        screenSummaryContent: new NutationScreenSummaryContent(model),
+      },
+      providedOptions,
+    );
+    super(options);
 
     this.addChild(
       new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {

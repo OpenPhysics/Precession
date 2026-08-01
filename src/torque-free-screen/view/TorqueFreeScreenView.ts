@@ -4,10 +4,10 @@
  * Layout for Screen 3: the tumbling block with its two vectors, and ω(t) beneath it.
  */
 
+import { type EmptySelfOptions, optionize } from "scenerystack/phet-core";
 import { Node, Rectangle, VBox } from "scenerystack/scenery";
 import { ResetAllButton, TimeControlNode, TimeSpeed } from "scenerystack/scenery-phet";
-import type { ScreenViewOptions } from "scenerystack/sim";
-import { ScreenView } from "scenerystack/sim";
+import { ScreenView, type ScreenViewOptions } from "scenerystack/sim";
 import {
   FLAT_PLAY_PAUSE_STEP_BUTTON_OPTIONS,
   FLAT_RESET_ALL_BUTTON_OPTIONS,
@@ -25,12 +25,17 @@ import { TUMBLE_SCENE_WIDTH, TumbleSceneNode } from "./TumbleSceneNode.js";
 
 const BOTTOM_CHROME_HEIGHT = 56;
 
+export type TorqueFreeScreenViewOptions = ScreenViewOptions;
+
 export class TorqueFreeScreenView extends ScreenView {
-  public constructor(model: TorqueFreeModel, options?: ScreenViewOptions) {
-    super({
-      screenSummaryContent: new TorqueFreeScreenSummaryContent(model),
-      ...options,
-    });
+  public constructor(model: TorqueFreeModel, providedOptions?: TorqueFreeScreenViewOptions) {
+    const options = optionize<TorqueFreeScreenViewOptions, EmptySelfOptions, ScreenViewOptions>()(
+      {
+        screenSummaryContent: new TorqueFreeScreenSummaryContent(model),
+      },
+      providedOptions,
+    );
+    super(options);
 
     this.addChild(
       new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {
