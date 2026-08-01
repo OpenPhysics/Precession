@@ -13,7 +13,14 @@
  * the block rather than steering the one already tumbling.
  */
 
-import { BooleanProperty, DerivedProperty, EnumerationProperty, NumberProperty, Property } from "scenerystack/axon";
+import {
+  BooleanProperty,
+  DerivedProperty,
+  EnumerationProperty,
+  NumberProperty,
+  Property,
+  StringUnionProperty,
+} from "scenerystack/axon";
 import { Vector3 } from "scenerystack/dot";
 import type { TModel } from "scenerystack/joist";
 import { TimeSpeed } from "scenerystack/scenery-phet";
@@ -72,7 +79,9 @@ export class TorqueFreeModel implements TModel {
   // ── Launch parameters ───────────────────────────────────────────────────────
 
   /** Which principal axis the block is spun about at launch. */
-  public readonly spinAxisProperty = new Property<SpinAxis>("intermediate");
+  public readonly spinAxisProperty = new StringUnionProperty<SpinAxis>("intermediate", {
+    validValues: ["maxInertia", "intermediate", "minInertia"],
+  });
   /** Spin rate at launch (rad/s). */
   public readonly spinRateProperty = new NumberProperty(DEFAULT_TUMBLE_SPIN_RAD_S);
   /**
