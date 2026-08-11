@@ -1,5 +1,7 @@
 # Rigid Body Precession
 
+[![CI](https://github.com/OpenPhysics/Precession/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenPhysics/Precession/actions/workflows/ci.yml)
+
 A reusable single-screen simulation template built with [SceneryStack](https://scenerystack.org/),
 Vite 8, TypeScript 7, and Biome 2.
 
