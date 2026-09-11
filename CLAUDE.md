@@ -1,6 +1,6 @@
 # CLAUDE.md — Rigid Body Precession
 
-Sim-specific context for AI assistants. General SceneryStack guidance: [OpenPhysics/.github/CLAUDE.md](https://github.com/OpenPhysics/.github/blob/main/CLAUDE.md).
+Sim-specific context for AI assistants. General SceneryStack guidance: [OpenLyceum/.github/CLAUDE.md](https://github.com/OpenLyceum/.github/blob/main/CLAUDE.md).
 
 ## Project
 
@@ -215,12 +215,12 @@ flat buttons, editable fields) keeps readable contrast automatically.
 
 ## Accessibility
 
-This template is the **canonical accessibility reference** for OpenPhysics sims. It ships with
+This template is the **canonical accessibility reference** for OpenLyceum sims. It ships with
 the three required layers wired up: PDOM names, a `RigidBodyPrecessionScreenSummaryContent`, and an explicit
 `pdomOrder` + `RigidBodyPrecessionKeyboardHelpContent`. A11y strings live under the `a11y` key in each locale
 JSON, exposed via `StringManager.getA11yStrings()`. When building a real sim, make
 `currentDetailsContent` a live `DerivedProperty` over model state and add `accessibleName`s to
-every interactive node. Full convention and checklist: [Baton/ACCESSIBILITY.md](https://github.com/OpenPhysics/Baton/blob/main/ACCESSIBILITY.md).
+every interactive node. Full convention and checklist: [Baton/ACCESSIBILITY.md](https://github.com/OpenLyceum/Baton/blob/main/ACCESSIBILITY.md).
 
 ### Long explanatory text
 
